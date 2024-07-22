@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:center;">
+<head>
+	<meta charset="UTF-8">
+	<title>im joe</title>
+	<style>
+	  canvas {
+	    padding-left: 0;
+	    padding-right: 0;
+	    margin-left: auto;
+	    margin-right: auto;
+	    display: block;
+	    width: 400px;
+	    height: 400px;
+	  }
+	</style>
+</head>
+<body>
+<h2><3<3<3<3<3</h2>
+
+<script src="gl-matrix-min.js"></script>
+
+<canvas id="canvas"></canvas>
+<script>
+	const vertexShaderSource = `
+		attribute vec4 position;
+
+		void main() {
+		  gl_Position = position;
+		}
+	`;
+	const fragmentShaderSource = `
+		precision mediump float;
+		uniform vec2 resolution;
+		uniform float time;
+		uniform vec2 rotation;
+
+		void main() {
+		  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+
+		  vec2 center = vec2(0.5, 0.5);
+		  vec2 st = gl_FragCoord.xy/resolution;
+		  float radius = 0.2;
+
+		  vec2 pos = vec2(
+				      gl_FragCoord.x * rotation.y + gl_FragCoord.y * rotation.x,
+				      gl_FragCoord.y * rotation.y - gl_FragCoord.x * rotation.x
+				 );
+
+		  if (distance(st, center) < radius) {
+			gl_FragColor = vec4(sin(pos.y), cos(pos.x), cos(pos.y), sin(pos.x));
+		  }
+		}
+	`;
+
+	const date = new Date();
+	const canvas = document.getElementById('canvas');
+	const gl = canvas.getContext('webgl');
+
+	//Create vertex shader
+	const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+	gl.shaderSource(vertexShader, vertexShaderSource);
+	gl.compileShader(vertexShader);
+
+	//Create fragment shader
+	const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(fragmentShader, fragmentShaderSource);
+	gl.compileShader(fragmentShader);
+
+	//Create shader program
+	const shaderProgram = gl.createProgram();
+	gl.attachShader(shaderProgram, vertexShader);
+	gl.attachShader(shaderProgram, fragmentShader);
+	gl.linkProgram(shaderProgram);
+	gl.useProgram(shaderProgram);
+
+	//Get attribute and uniform locations
+	const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
+	const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
+	const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
+	const rotationLocation = gl.getUniformLocation(shaderProgram, 'rotation');
+
+	//Create buffer
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	const positions = [
+		-1, -1,
+		 1, -1,
+		-1,  1,
+		-1,  1,
+		 1, -1,
+		 1,  1
+	];
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	//Set attributes
+	gl.enableVertexAttribArray(positionAttributeLocation);
+	gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+	//Set uniforms
+	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+	function render() {
+		gl.uniform1f(timeUniformLocation, performance.now() / 1000);
+		gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
+		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		requestAnimationFrame(render);
+	}
+
+	render();
+</script>
+wooow that's prettY!!!
+</body>
+</html>
