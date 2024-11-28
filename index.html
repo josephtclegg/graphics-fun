@@ -50,6 +50,8 @@
 		  if (distance(st, center) < radius) {
 			gl_FragColor = vec4(sin(pos.y), cos(pos.x), cos(pos.y), sin(pos.x));
 		  }
+
+      gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 		}
 	`;
 
@@ -83,19 +85,32 @@
 	//Create buffer
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	const positions = [
-		-1, -1,
-		 1, -1,
-		-1,  1,
-		-1,  1,
-		 1, -1,
-		 1,  1
-	];
+
+  //TRIANGLE
+	//const positions = [
+	//	-1.0, -1.0,
+	//	 1.0, -1.0,
+	//	 0.0,  1.0
+	//];
+  const positions = [
+      0.420152, 0.078145, 0.904083,
+      0.995005,-0.091348, 0.040147,
+      0.518837, 0.835420, 0.181332,
+     -0.414682, 0.655962, 0.630676,
+     -0.515456,-0.381717, 0.767201,
+      0.355781,-0.843580, 0.402234,
+      0.414682,-0.655962,-0.630676,
+      0.515456, 0.381717,-0.767201,
+     -0.355781, 0.843580,-0.402234,
+     -0.995009, 0.091348,-0.040147,
+     -0.518837,-0.835420,-0.181332,
+     -0.420152,-0.078145,-0.904083
+  ];
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
 	//Set attributes
 	gl.enableVertexAttribArray(positionAttributeLocation);
-	gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 
 	//Set uniforms
 	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
@@ -103,7 +118,7 @@
 	function render() {
 		gl.uniform1f(timeUniformLocation, performance.now() / 1000);
 		gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
-		gl.drawArrays(gl.TRIANGLES, 0, 6);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
 		requestAnimationFrame(render);
 	}
 
