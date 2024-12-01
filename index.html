@@ -51,7 +51,7 @@
 			gl_FragColor = vec4(sin(pos.y), cos(pos.x), cos(pos.y), sin(pos.x));
 		  }
 
-      gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+      		  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
 		}
 	`;
 
@@ -86,77 +86,77 @@
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  const positions = [
-      0.420152, 0.078145, 0.904083,  //0
-      0.995005,-0.091348, 0.040147,  //1
-      0.518837, 0.835420, 0.181332,  //2
-     -0.414682, 0.655962, 0.630676,  //3
-     -0.515456,-0.381717, 0.767201,  //4
-      0.355781,-0.843580, 0.402234,  //5
-      0.414682,-0.655962,-0.630676,  //6
-      0.515456, 0.381717,-0.767201,  //7
-     -0.355781, 0.843580,-0.402234,  //8
-     -0.995009, 0.091348,-0.040147,  //9
-     -0.518837,-0.835420,-0.181332,  //10
-     -0.420152,-0.078145,-0.904083   //11
-  ];
+	const X = 0.525731112119133606
+	const Z = 0.850650808352039932
 
-  const indices = [
-      0,11, 5,  //triangle 1
-      0, 5, 1,  //triangle 2
-      0, 1, 7,  //triangle 3
-      0, 7,10,  //...
-      0,10,11,
-      1, 5, 9,
-      5,11, 4,
-     11,10, 2,
-     10, 7, 6,
-      7, 1, 8,
-      3, 9, 4,
-      3, 4, 2,
-      3, 2, 6,
-      3, 6, 8,
-      3, 8, 9,
-      4, 9, 5,
-      2, 4,11,
-      6, 2,10,
-      8, 6, 7,
-      9, 8, 1   //triangle 20
-  ];
+	const positions = [
+	  -X, 0.0, Z,
+	  X, 0.0, Z,
+	  -X, 0.0, -Z,
+	  X, 0.0, -Z,
+	  0.0, Z, X,
+	  0.0, Z, -X,
+	  0.0, -Z, X,
+	  0.0, -Z, -X,
+	  Z, X, 0.0,
+	  -Z, X, 0.0,
+	  Z, -X, 0.0,
+	  -Z, -X, 0.0
+	];
 
-  var vertices = [];
+	const indices = [
+	  0,4,1,
+	  0,9,4,
+	  9,5,4,
+	  4,5,8,
+	  4,8,1,
+	  8,10,1,
+	  8,3,10,
+	  5,3,8,
+	  5,2,3,
+	  2,7,3,
+	  7,10,3,
+	  7,6,10,
+	  7,11,6,
+	  11,0,6,
+	  0,1,6,
+	  6,1,10,
+	  9,0,11,
+	  9,11,2,
+	  9,2,5,
+	  7,2,11
+	];
 
-  for (var i = 0; i < indices.length; i+=3) {
-    //its 3*indices[i] because each 'position' has 3 values xyz so we need the right stride
-    for (var j = 0; j < 3; j++) {
-      //the three 'vertices.push' statements in this loop are pushing the 3 coordinates of one
-      //vertex to the array, so to tesselate a triangle-at-a-time we need the inner loop to do
-      //all three of the triangle's vertices, hence the bound 0 <= j < 3
-      let index = 3*indices[i+j];
-      vertices.push(positions[index]);
-      vertices.push(positions[index+1]);
-      vertices.push(positions[index+2]);
-    }
-  }
-  for (var i = 0; i < vertices.length; i++) {
-    console.log(vertices[i]);
-  }
+	var vertices = [];
+
+	for (var i = 0; i < indices.length; i+=3) {
+	  //its 3*indices[i] because each 'position' has 3 values xyz so we need the right stride
+	  for (var j = 0; j < 3; j++) {
+	    //the three 'vertices.push' statements in this loop are pushing the 3 coordinates of one
+	    //vertex to the array, so to tesselate a triangle-at-a-time we need the inner loop to do
+	    //all three of the triangle's vertices, hence the bound 0 <= j < 3
+	    let index = 3*indices[i+j];
+	    vertices.push(positions[index]);
+	    vertices.push(positions[index+1]);
+	    vertices.push(positions[index+2]);
+	  }
+	}
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
+	
 	//Set attributes
 	gl.enableVertexAttribArray(positionAttributeLocation);
 	gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
+	
 	//Set uniforms
 	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-
+	
 	function render() {
-		gl.uniform1f(timeUniformLocation, performance.now() / 1000);
-		gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
-		gl.drawArrays(gl.LINE_LOOP/* TRIANGLES */, 0, 60); //20 triangles, 3 vertices each
-		requestAnimationFrame(render);
+	      gl.uniform1f(timeUniformLocation, performance.now() / 1000);
+	      gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
+	      gl.drawArrays(gl.TRIANGLES, 0, 60); //20 triangles, 3 vertices each
+	      requestAnimationFrame(render);
 	}
-
+	
 	render();
 </script>
 wooow that's prettY!!!
