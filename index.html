@@ -24,8 +24,12 @@
 <script>
 	const vertexShaderSource = `
 		attribute vec3 position;
+		attribute vec3 vertexcolor;
+
+                varying vec3 color;
 
 		void main() {
+		  color = vertexcolor;
 		  gl_Position = vec4(position, 1.0);
 		}
 	`;
@@ -34,24 +38,10 @@
 		uniform vec2 resolution;
 		uniform float time;
 		uniform vec2 rotation;
+		varying vec3 color;
 
 		void main() {
-		  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-
-		  vec2 center = vec2(0.5, 0.5);
-		  vec2 st = gl_FragCoord.xy/resolution;
-		  float radius = 0.2;
-
-		  vec2 pos = vec2(
-				      gl_FragCoord.x * rotation.y + gl_FragCoord.y * rotation.x,
-				      gl_FragCoord.y * rotation.y - gl_FragCoord.x * rotation.x
-				 );
-
-		  if (distance(st, center) < radius) {
-			gl_FragColor = vec4(sin(pos.y), cos(pos.x), cos(pos.y), sin(pos.x));
-		  }
-
-      		  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+      		  gl_FragColor = vec4(color, 1.0);
 		}
 	`;
 
@@ -78,6 +68,7 @@
 
 	//Get attribute and uniform locations
 	const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
+	const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
 	const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
 	const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
 	const rotationLocation = gl.getUniformLocation(shaderProgram, 'rotation');
@@ -90,19 +81,21 @@
 	const Z = 0.850650808352039932
 
 	const positions = [
-	  -X, 0.0, Z,
-	  X, 0.0, Z,
-	  -X, 0.0, -Z,
-	  X, 0.0, -Z,
-	  0.0, Z, X,
-	  0.0, Z, -X,
-	  0.0, -Z, X,
-	  0.0, -Z, -X,
-	  Z, X, 0.0,
-	  -Z, X, 0.0,
-	  Z, -X, 0.0,
-	  -Z, -X, 0.0
+	  -X, 0.0, Z, 1.0, 0.0, 0.0,
+	  X, 0.0, Z, 0.0, 1.0, 0.0,
+	  -X, 0.0, -Z, 0.0, 0.0, 1.0,
+	  X, 0.0, -Z, 1.0, 0.0, 0.0,
+	  0.0, Z, X, 0.0, 1.0, 0.0,
+	  0.0, Z, -X, 0.0, 0.0, 1.0,
+	  0.0, -Z, X, 1.0, 0.0, 0.0,
+	  0.0, -Z, -X, 0.0, 1.0, 0.0,
+	  Z, X, 0.0, 0.0, 0.0, 1.0,
+	  -Z, X, 0.0, 1.0, 0.0, 0.0,
+	  Z, -X, 0.0, 0.0, 1.0, 0.0,
+	  -Z, -X, 0.0, 0.0, 0.0, 1.0
 	];
+
+	const NUMPOS = 6;
 
 	const indices = [
 	  0,4,1,
@@ -128,17 +121,21 @@
 	];
 
 	var vertices = [];
+	var colors = [];
 
 	for (var i = 0; i < indices.length; i+=3) {
-	  //its 3*indices[i] because each 'position' has 3 values xyz so we need the right stride
 	  for (var j = 0; j < 3; j++) {
-	    //the three 'vertices.push' statements in this loop are pushing the 3 coordinates of one
+	    //the NUMPOS 'vertices.push' statements in this loop are pushing the NUMPOS coordinates of one
 	    //vertex to the array, so to tesselate a triangle-at-a-time we need the inner loop to do
 	    //all three of the triangle's vertices, hence the bound 0 <= j < 3
-	    let index = 3*indices[i+j];
-	    vertices.push(positions[index]);
-	    vertices.push(positions[index+1]);
-	    vertices.push(positions[index+2]);
+	    //its NUMPOS*indices[i] because each 'position' has NUMPOS values xyz so we need the right stride
+	    let index = NUMPOS*indices[i+j];
+	    for (var k = 0; k < 3; k++) {
+	      vertices.push(positions[index+k]);
+	    }
+	    for (var k = 3; k < NUMPOS; k++) {
+	      colors.push(positions[index+k]);
+	    }
 	  }
 	}
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -146,6 +143,14 @@
 	//Set attributes
 	gl.enableVertexAttribArray(positionAttributeLocation);
 	gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+	
+	gl.enableVertexAttribArray(colorAttributeLocation);
+	gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
 	
 	//Set uniforms
 	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
@@ -153,7 +158,7 @@
 	function render() {
 	      gl.uniform1f(timeUniformLocation, performance.now() / 1000);
 	      gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
-	      gl.drawArrays(gl.TRIANGLES, 0, 60); //20 triangles, 3 vertices each
+	      gl.drawArrays(gl.LINE_LOOP, 0, 60); //20 triangles, 3 vertices each
 	      requestAnimationFrame(render);
 	}
 	
