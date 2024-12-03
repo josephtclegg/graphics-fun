@@ -17,27 +17,27 @@
 </head>
 <body>
 <h2><3<3<3<3<3</h2>
-
-<script src="gl-matrix-min.js"></script>
-
+<script src="./gl-matrix-min.js"></script>
 <canvas id="canvas"></canvas>
 <script>
+	const mat4 = glMatrix.mat4;
+
 	const vertexShaderSource = `
 		attribute vec3 position;
 		attribute vec3 vertexcolor;
+		uniform mat4 mvp;
 
                 varying vec3 color;
 
 		void main() {
 		  color = vertexcolor;
-		  gl_Position = vec4(position, 1.0);
+		  gl_Position = mvp * vec4(position, 1.0);
 		}
 	`;
 	const fragmentShaderSource = `
 		precision highp float;
 		uniform vec2 resolution;
 		uniform float time;
-		uniform vec2 rotation;
 		varying vec3 color;
 
 		void main() {
@@ -71,14 +71,15 @@
 	const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
 	const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
 	const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
-	const rotationLocation = gl.getUniformLocation(shaderProgram, 'rotation');
+	const u_mvp = gl.getUniformLocation(shaderProgram, 'mvp');
+	const u_normalmat = gl.getUniformLocation(shaderProgram, 'normalmat');
 
 	//Create buffer
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-	const X = 0.525731112119133606
-	const Z = 0.850650808352039932
+	const X = 0.525731112119133606;
+	const Z = 0.850650808352039932;
 
 	const positions = [
 	  -X, 0.0, Z, 1.0, 0.0, 0.0,
@@ -154,12 +155,24 @@
 	
 	//Set uniforms
 	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+	const projection = mat4.create();
+	const modelview = mat4.create();
+	const mvp = mat4.create();
 	
 	function render() {
-	      gl.uniform1f(timeUniformLocation, performance.now() / 1000);
-	      gl.uniform2fv(rotationLocation, [performance.now()/1000, performance.now()/1000]);
-	      gl.drawArrays(gl.LINE_LOOP, 0, 60); //20 triangles, 3 vertices each
-	      requestAnimationFrame(render);
+	  gl.uniform1f(timeUniformLocation, performance.now() / 1000);
+	  mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
+	  mat4.lookAt(modelview, [2,2,6], [0,0,0], [0,1,0]);
+
+	  mat4.rotateZ(modelview, modelview, performance.now() / 1000);
+	  mat4.rotateX(modelview, modelview, performance.now() / 1000);
+
+	  mat4.multiply(mvp, projection, modelview);
+	  gl.uniformMatrix4fv(u_mvp, false, mvp);
+
+	  gl.drawArrays(gl.TRIANGLES, 0, 60); //20 triangles, 3 vertices each
+	  requestAnimationFrame(render);
 	}
 	
 	render();
