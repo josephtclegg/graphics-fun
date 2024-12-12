@@ -20,162 +20,183 @@
 <script src="./gl-matrix-min.js"></script>
 <canvas id="canvas"></canvas>
 <script>
-	const mat4 = glMatrix.mat4;
+  const mat4 = glMatrix.mat4;
+  
+  const vertexShaderSource = `
+  	attribute vec3 position;
+  	attribute vec3 vertexcolor;
+  	uniform mat4 mvp;
+  
+          varying vec3 color;
+  
+  	void main() {
+  	  color = vertexcolor;
+  	  gl_Position = mvp * vec4(normalize(position), 1.0);
+  	  //gl_Position = mvp * vec4(position, 1.0);
+  	  //gl_Position = vec4(normalize(vec3(gl_Position.x, gl_Position.y, gl_Position.z)), 1.0);
+  	}
+  `;
+  const fragmentShaderSource = `
+  	precision highp float;
+  	uniform vec2 resolution;
+  	uniform float time;
+  	varying vec3 color;
+  
+  	void main() {
+  	  gl_FragColor = vec4(color, 1.0);
+  	}
+  `;
 
-	const vertexShaderSource = `
-		attribute vec3 position;
-		attribute vec3 vertexcolor;
-		uniform mat4 mvp;
+  const createIcosphere = function (COLORS) {
+    const X = 0.525731112119133606;
+    const Z = 0.850650808352039932;
+    const R = Z;
+    const NUMPOS = 6;
+  
+    const positions = [
+      -X, 0.0, Z,
+      X, 0.0, Z,
+      -X, 0.0, -Z,
+      X, 0.0, -Z,
+      0.0, Z, X,
+      0.0, Z, -X,
+      0.0, -Z, X,
+      0.0, -Z, -X,
+      Z, X, 0.0,
+      -Z, X, 0.0,
+      Z, -X, 0.0,
+      -Z, -X, 0.0
+    ];
+  
+    const indices = [
+      0,4,1,
+      0,9,4,
+      9,5,4,
+      4,5,8,
+      4,8,1,
+      8,10,1,
+      8,3,10,
+      5,3,8,
+      5,2,3,
+      2,7,3,
+      7,10,3,
+      7,6,10,
+      7,11,6,
+      11,0,6,
+      0,1,6,
+      6,1,10,
+      9,0,11,
+      9,11,2,
+      9,2,5,
+      7,2,11
+    ];
+ 
+    let vertices = indices.map((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]).flat();
+    let colors = indices.map((n) => [COLORS[3*n], COLORS[(3*n)+1], COLORS[(3*n)+2]]).flat();
 
-                varying vec3 color;
+    const icosphere = {
+      getVertices() {
+	console.log(vertices);
+	return vertices;
+      },
+      getColors() {
+	return colors;
+      },
+      subdivide() {
 
-		void main() {
-		  color = vertexcolor;
-		  gl_Position = mvp * vec4(position, 1.0);
-		}
-	`;
-	const fragmentShaderSource = `
-		precision highp float;
-		uniform vec2 resolution;
-		uniform float time;
-		varying vec3 color;
+      }
+    };
 
-		void main() {
-      		  gl_FragColor = vec4(color, 1.0);
-		}
-	`;
+    return icosphere;
+  };
+  
+  const date = new Date();
+  const canvas = document.getElementById('canvas');
+  const gl = canvas.getContext('webgl');
+  
+  //Create vertex shader
+  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vertexShader, vertexShaderSource);
+  gl.compileShader(vertexShader);
+  
+  //Create fragment shader
+  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fragmentShader, fragmentShaderSource);
+  gl.compileShader(fragmentShader);
+  
+  //Create shader program
+  const shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
+  gl.useProgram(shaderProgram);
+  
+  //Get attribute and uniform locations
+  const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
+  const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
+  const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
+  const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
+  const u_mvp = gl.getUniformLocation(shaderProgram, 'mvp');
+  const u_normalmat = gl.getUniformLocation(shaderProgram, 'normalmat');
+  
+  //Create buffer
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  
+  const colors = [
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0,
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
+  ];
+ 
+  const ico = createIcosphere(colors);
 
-	const date = new Date();
-	const canvas = document.getElementById('canvas');
-	const gl = canvas.getContext('webgl');
-
-	//Create vertex shader
-	const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-	gl.shaderSource(vertexShader, vertexShaderSource);
-	gl.compileShader(vertexShader);
-
-	//Create fragment shader
-	const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-	gl.shaderSource(fragmentShader, fragmentShaderSource);
-	gl.compileShader(fragmentShader);
-
-	//Create shader program
-	const shaderProgram = gl.createProgram();
-	gl.attachShader(shaderProgram, vertexShader);
-	gl.attachShader(shaderProgram, fragmentShader);
-	gl.linkProgram(shaderProgram);
-	gl.useProgram(shaderProgram);
-
-	//Get attribute and uniform locations
-	const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
-	const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
-	const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
-	const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
-	const u_mvp = gl.getUniformLocation(shaderProgram, 'mvp');
-	const u_normalmat = gl.getUniformLocation(shaderProgram, 'normalmat');
-
-	//Create buffer
-	const positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-	const X = 0.525731112119133606;
-	const Z = 0.850650808352039932;
-
-	const positions = [
-	  -X, 0.0, Z, 1.0, 0.0, 0.0,
-	  X, 0.0, Z, 0.0, 1.0, 0.0,
-	  -X, 0.0, -Z, 0.0, 0.0, 1.0,
-	  X, 0.0, -Z, 1.0, 0.0, 0.0,
-	  0.0, Z, X, 0.0, 1.0, 0.0,
-	  0.0, Z, -X, 0.0, 0.0, 1.0,
-	  0.0, -Z, X, 1.0, 0.0, 0.0,
-	  0.0, -Z, -X, 0.0, 1.0, 0.0,
-	  Z, X, 0.0, 0.0, 0.0, 1.0,
-	  -Z, X, 0.0, 1.0, 0.0, 0.0,
-	  Z, -X, 0.0, 0.0, 1.0, 0.0,
-	  -Z, -X, 0.0, 0.0, 0.0, 1.0
-	];
-
-	const NUMPOS = 6;
-
-	const indices = [
-	  0,4,1,
-	  0,9,4,
-	  9,5,4,
-	  4,5,8,
-	  4,8,1,
-	  8,10,1,
-	  8,3,10,
-	  5,3,8,
-	  5,2,3,
-	  2,7,3,
-	  7,10,3,
-	  7,6,10,
-	  7,11,6,
-	  11,0,6,
-	  0,1,6,
-	  6,1,10,
-	  9,0,11,
-	  9,11,2,
-	  9,2,5,
-	  7,2,11
-	];
-
-	var vertices = [];
-	var colors = [];
-
-	for (var i = 0; i < indices.length; i+=3) {
-	  for (var j = 0; j < 3; j++) {
-	    //the NUMPOS 'vertices.push' statements in this loop are pushing the NUMPOS coordinates of one
-	    //vertex to the array, so to tesselate a triangle-at-a-time we need the inner loop to do
-	    //all three of the triangle's vertices, hence the bound 0 <= j < 3
-	    //its NUMPOS*indices[i] because each 'position' has NUMPOS values xyz so we need the right stride
-	    let index = NUMPOS*indices[i+j];
-	    for (var k = 0; k < 3; k++) {
-	      vertices.push(positions[index+k]);
-	    }
-	    for (var k = 3; k < NUMPOS; k++) {
-	      colors.push(positions[index+k]);
-	    }
-	  }
-	}
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-	
-	//Set attributes
-	gl.enableVertexAttribArray(positionAttributeLocation);
-	gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-
-	const colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-	
-	gl.enableVertexAttribArray(colorAttributeLocation);
-	gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-	
-	//Set uniforms
-	gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-
-	const projection = mat4.create();
-	const modelview = mat4.create();
-	const mvp = mat4.create();
-	
-	function render() {
-	  gl.uniform1f(timeUniformLocation, performance.now() / 1000);
-	  mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
-	  mat4.lookAt(modelview, [2,2,6], [0,0,0], [0,1,0]);
-
-	  mat4.rotateZ(modelview, modelview, performance.now() / 1000);
-	  mat4.rotateX(modelview, modelview, performance.now() / 1000);
-
-	  mat4.multiply(mvp, projection, modelview);
-	  gl.uniformMatrix4fv(u_mvp, false, mvp);
-
-	  gl.drawArrays(gl.TRIANGLES, 0, 60); //20 triangles, 3 vertices each
-	  requestAnimationFrame(render);
-	}
-	
-	render();
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getVertices()), gl.STATIC_DRAW);
+  
+  //Set attributes
+  gl.enableVertexAttribArray(positionAttributeLocation);
+  gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+  
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getColors()), gl.STATIC_DRAW);
+  
+  gl.enableVertexAttribArray(colorAttributeLocation);
+  gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+  
+  //Set uniforms
+  gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+  
+  const projection = mat4.create();
+  const modelview = mat4.create();
+  const mvp = mat4.create();
+  
+  function render() {
+    gl.uniform1f(timeUniformLocation, performance.now() / 1000);
+    mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
+    mat4.lookAt(modelview, [2,2,6], [0,0,0], [0,1,0]);
+  
+    mat4.rotateZ(modelview, modelview, performance.now() / 1000);
+    mat4.rotateX(modelview, modelview, performance.now() / 1000);
+  
+    mat4.multiply(mvp, projection, modelview);
+    gl.uniformMatrix4fv(u_mvp, false, mvp);
+  
+    gl.drawArrays(gl.LINE_LOOP /* TRIANGLE_STRIP */, 0, 60); //60 comes from 20 triangles, 3 vertices each
+    requestAnimationFrame(render);
+  }
+  
+  render();
 </script>
 wooow that's prettY!!!
 </body>
