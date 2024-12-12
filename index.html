@@ -91,8 +91,8 @@
       7,2,11
     ];
  
-    let vertices = indices.map((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]).flat();
-    let colors = indices.map((n) => [COLORS[3*n], COLORS[(3*n)+1], COLORS[(3*n)+2]]).flat();
+    let vertices = indices.flatMap((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]);
+    let colors = indices.flatMap((n) => [COLORS[3*n], COLORS[(3*n)+1], COLORS[(3*n)+2]]);
 
     const icosphere = {
       getVertices() {
