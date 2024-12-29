@@ -24,13 +24,16 @@
   
   const vertexShaderSource = `
   	attribute vec3 position;
-  	attribute vec3 vertexcolor;
+  	//attribute vec3 vertexcolor;
+    attribute vec2 texcoord; 
   	uniform mat4 mvp;
   
-          varying vec3 color;
+    //varying vec3 color;
+    varying vec2 uv;
   
   	void main() {
-  	  color = vertexcolor;
+  	  //color = vertexcolor;
+      uv = texcoord;
   	  gl_Position = mvp * vec4(normalize(position), 1.0);
   	  //gl_Position = mvp * vec4(position, 1.0);
   	  //gl_Position = vec4(normalize(vec3(gl_Position.x, gl_Position.y, gl_Position.z)), 1.0);
@@ -40,10 +43,13 @@
   	precision highp float;
   	uniform vec2 resolution;
   	uniform float time;
-  	varying vec3 color;
+  	//varying vec3 color;
+  	varying vec2 uv;
+    uniform sampler2D texture;
   
   	void main() {
-  	  gl_FragColor = vec4(color, 1.0);
+  	  //gl_FragColor = vec4(color, 1.0);
+  	  gl_FragColor = texture2D(texture, uv);
   	}
   `;
 
@@ -53,22 +59,22 @@
     const R = Z;
   
     const positions = [
-      -X, 0.0, Z,
-      X, 0.0, Z,
-      -X, 0.0, -Z,
-      X, 0.0, -Z,
-      0.0, Z, X,
-      0.0, Z, -X,
-      0.0, -Z, X,
-      0.0, -Z, -X,
-      Z, X, 0.0,
-      -Z, X, 0.0,
-      Z, -X, 0.0,
-      -Z, -X, 0.0
+      -X, 0.0, Z,  //0
+      X, 0.0, Z,   //1
+      -X, 0.0, -Z, //2
+      X, 0.0, -Z,  //3
+      0.0, Z, X,   //4
+      0.0, Z, -X,  //5
+      0.0, -Z, X,  //6
+      0.0, -Z, -X, //7
+      Z, X, 0.0,   //8
+      -Z, X, 0.0,  //9
+      Z, -X, 0.0,  //10
+      -Z, -X, 0.0  //11
     ];
   
     const indices = [
-      0,4,1,
+      0,4,1,  
       0,9,4,
       9,5,4,
       4,5,8,
@@ -89,64 +95,130 @@
       9,2,5,
       7,2,11
     ];
+
+    let uvs = [
+      693.0/1024.0, 267.0/449.0,  539.0/1024.0, 267.0/449.0,  616.0/1024.0, 399.0/449.0, //0,4,1
+      693.0/1024.0, 267.0/449.0,  615.0/1024.0, 133.0/449.0,  539.0/1024.0, 266.0/449.0, //0,9,4
+      615.0/1024.0, 133.0/449.0,  461.0/1024.0, 133.0/449.0,  539.0/1024.0, 266.0/449.0, //9,5,4
+      539.0/1024.0, 266.0/449.0,  461.0/1024.0, 133.0/449.0,  385.0/1024.0, 366.0/449.0, //4,5,8
+      539.0/1024.0, 266.0/449.0,  461.0/1024.0, 399.0/449.0,  616.0/1024.0, 399.0/449.0, //4,8,1
+      385.0/1024.0, 266.0/449.0,  230.0/1024.0, 266.0/449.0,  307.0/1024.0, 399.0/449.0, //8,10,1
+      385.0/1024.0, 266.0/449.0,  308.0/1024.0, 133.0/449.0,  230.0/1024.0, 266.0/449.0, //8,3,10
+      461.0/1024.0, 133.0/449.0,  308.0/1024.0, 133.0/449.0,  385.0/1024.0, 266.0/449.0, //5,3,8
+      461.0/1024.0, 133.0/449.0,  385.0/1024.0, 0.000/449.0,  308.0/1024.0, 133.0/449.0, //5,2,3
+      385.0/1024.0, 0.000/449.0,  230.0/1024.0, 0.000/449.0,  308.0/1024.0, 133.0/449.0, //2,7,3
+      153.0/1024.0, 133.0/449.0,  230.0/1024.0, 266.0/449.0,  308.0/1024.0, 133.0/449.0, //7,10,3
+      153.0/1024.0, 133.0/449.0,  77.00/1024.0, 266.0/449.0,  230.0/1024.0, 266.0/449.0, //7,6,10
+      153.0/1024.0, 133.0/449.0,  0.000/1024.0, 133.0/449.0,  77.00/1024.0, 266.0/449.0, //7,11,6
+      769.0/1024.0, 133.0/449.0,  692.0/1024.0, 266.0/449.0,  847.0/1024.0, 266.0/449.0, //11,0,6
+      692.0/1024.0, 266.0/449.0,  615.0/1024.0, 400.0/449.0,  769.0/1024.0, 400.0/449.0, //0,1,6
+      77.00/1024.0, 266.0/449.0,  153.0/1024.0, 400.0/449.0,  230.0/1024.0, 266.0/449.0, //6,1,10
+      615.0/1024.0, 133.0/449.0,  692.0/1024.0, 266.0/449.0,  769.0/1024.0, 133.0/449.0, //9,0,11
+      615.0/1024.0, 133.0/449.0,  769.0/1024.0, 133.0/449.0,  693.0/1024.0, 0.000/449.0, //9,11,2
+      615.0/1024.0, 133.0/449.0,  539.0/1024.0, 0.000/449.0,  462.0/1024.0, 133.0/449.0, //9,2,5
+      846.0/1024.0, 0.000/449.0,  693.0/1024.0, 0.000/449.0,  769.0/1024.0, 133.0/449.0  //7,2,11
+    ];
  
     let vertices = indices.flatMap((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]);
     let colors = indices.flatMap((n) => [COLORS[3*n], COLORS[(3*n)+1], COLORS[(3*n)+2]]);
 
     const icosphere = {
       getVertices() {
-	return vertices;
+	      return vertices;
       },
       getColors() {
-	return colors;
+	      return colors;
+      },
+      getUvs() {
+        return uvs;
       },
       numVertices() {
         return vertices.length/3;
       },
       subdivide() {
-	const subdivideFace = function(EXTEND, face_vertices) {                      //      A
+	      const subdivideVertices = function(EXTEND, face_vertices) {                  //      A
           let A = { x: face_vertices[0], y: face_vertices[1], z: face_vertices[2] }; //      /\
           let B = { x: face_vertices[3], y: face_vertices[4], z: face_vertices[5] }; //     /  \
           let C = { x: face_vertices[6], y: face_vertices[7], z: face_vertices[8] }; //    / 1  \
-	  let D = { x: (A.x+C.x)/2.0,    y: (A.y+C.y)/2.0,    z: (A.z+C.z)/2.0 }; //    D /------\ E
-	  let E = { x: (A.x+B.x)/2.0,    y: (A.y+B.y)/2.0,    z: (A.z+B.z)/2.0 }; //     / \ 4  / \
-	  let F = { x: (B.x+C.x)/2.0,    y: (B.y+C.y)/2.0,    z: (B.z+C.z)/2.0 }; //    / 3 \  / 2 \
-	  let new_vertices = [D, A, E,  // 1                                           /_____\/_____\
-	                      F, E, B,  // 2                                          C       F      B
-	                      C, D, F,  // 3
-	                      F, D, E]; // 4
-	  const extend = function(V) {
+	        let D = { x: (A.x+C.x)/2.0,    y: (A.y+C.y)/2.0,    z: (A.z+C.z)/2.0 }; //    D /------\ E
+	        let E = { x: (A.x+B.x)/2.0,    y: (A.y+B.y)/2.0,    z: (A.z+B.z)/2.0 }; //     / \ 4  / \
+	        let F = { x: (B.x+C.x)/2.0,    y: (B.y+C.y)/2.0,    z: (B.z+C.z)/2.0 }; //    / 3 \  / 2 \
+	        let new_vertices = [D, A, E,  // 1                                           /_____\/_____\
+	                            F, E, B,  // 2                                          C       F      B
+	                            C, D, F,  // 3
+	                            F, D, E]; // 4
+	        const extend = function(V) {
             const i = Math.sqrt(Math.pow(V.x, 2) + Math.pow(V.y, 2) + Math.pow(V.z, 2))/R;
-	    return { x: V.x*i, y: V.y*i, z: V.z*i };
-	  }
-	
+	          return { x: V.x*i, y: V.y*i, z: V.z*i };
+	        }
+		      return new_vertices.map((n) => EXTEND ? extend(n) : n).flatMap((n) => [n.x, n.y, n.z]);
+	      };
 
-		return new_vertices.map((n) => EXTEND ? extend(n) : n).flatMap((n) => [n.x, n.y, n.z]);
-	};
-	vertices = Array.from(new Array(vertices.length), (x, i) => i)
-	                .filter((n) => n % 9 == 0)
-	                .flatMap((n) => subdivideFace(true,
-				                      [vertices[n],   //vertex 1
-                                                       vertices[n+1],
-                                                       vertices[n+2],
-                                                       vertices[n+3], //vertex 2
-                                                       vertices[n+4],
-                                                       vertices[n+5],
-                                                       vertices[n+6], //vertex 3
-                                                       vertices[n+7],
-                                                       vertices[n+8]]));
-	colors = Array.from(new Array(colors.length), (x, i) => i)
-	              .filter((n) => n % 9 == 0)
-	              .flatMap((n) => subdivideFace(false,
-			                            [colors[n],   //red
-                                                     colors[n+1],
-                                                     colors[n+2],
-                                                     colors[n+3], //green
-                                                     colors[n+4],
-                                                     colors[n+5],
-                                                     colors[n+6], //blue
-                                                     colors[n+7],
-                                                     colors[n+8]]));
+	      const subdivideColors = function(EXTEND, face_vertices) {
+          let A = { x: face_vertices[0], y: face_vertices[1], z: face_vertices[2] };
+          let B = { x: face_vertices[3], y: face_vertices[4], z: face_vertices[5] };
+          let C = { x: face_vertices[6], y: face_vertices[7], z: face_vertices[8] };
+	        let D = { x: (A.x+C.x)/2.0,    y: (A.y+C.y)/2.0,    z: (A.z+C.z)/2.0 };
+	        let E = { x: (A.x+B.x)/2.0,    y: (A.y+B.y)/2.0,    z: (A.z+B.z)/2.0 };
+	        let F = { x: (B.x+C.x)/2.0,    y: (B.y+C.y)/2.0,    z: (B.z+C.z)/2.0 };
+	        let new_vertices = [D, A, E,
+	                            F, E, B,
+	                            C, D, F,
+	                            F, D, E];
+	        const extend = function(V) {
+            const i = Math.sqrt(Math.pow(V.x, 2) + Math.pow(V.y, 2) + Math.pow(V.z, 2))/R;
+	          return { x: V.x*i, y: V.y*i, z: V.z*i };
+	        }
+		      return new_vertices.map((n) => EXTEND ? extend(n) : n).flatMap((n) => [n.x, n.y, n.z]);
+	      };
+
+	      const subdivideUvs = function(EXTEND, face_vertices) { 
+          let A = { x: face_vertices[0], y: face_vertices[1] };
+          let B = { x: face_vertices[2], y: face_vertices[3] };
+          let C = { x: face_vertices[4], y: face_vertices[5] };
+	        let D = { x: (A.x+C.x)/2.0,    y: (A.y+C.y)/2.0 };
+	        let E = { x: (A.x+B.x)/2.0,    y: (A.y+B.y)/2.0 };
+	        let F = { x: (B.x+C.x)/2.0,    y: (B.y+C.y)/2.0 };
+	        let new_vertices = [D, A, E,
+	                            F, E, B,
+	                            C, D, F,
+	                            F, D, E]
+		      return new_vertices.flatMap((n) => [n.x, n.y]);
+	      };
+
+        vertices = Array.from(new Array(vertices.length), (x, i) => i)
+	                 .filter((n) => n % 9 == 0)
+	                 .flatMap((n) => subdivideVertices(true,
+			  	                                           [vertices[n],   //vertex 1
+                                                      vertices[n+1],
+                                                      vertices[n+2],
+                                                      vertices[n+3], //vertex 2
+                                                      vertices[n+4],
+                                                      vertices[n+5],
+                                                      vertices[n+6], //vertex 3
+                                                      vertices[n+7],
+                                                      vertices[n+8]]));
+	      colors = Array.from(new Array(colors.length), (x, i) => i)
+	               .filter((n) => n % 9 == 0)
+	               .flatMap((n) => subdivideColors(false,
+			                                           [colors[n],   //red
+                                                  colors[n+1],
+                                                  colors[n+2],
+                                                  colors[n+3], //green
+                                                  colors[n+4],
+                                                  colors[n+5],
+                                                  colors[n+6], //blue
+                                                  colors[n+7],
+                                                  colors[n+8]]));
+	      uvs = Array.from(new Array(uvs.length), (x, i) => i)
+	               .filter((n) => n % 6 == 0)
+	               .flatMap((n) => subdivideUvs(false,
+			                                           [uvs[n],   //vertex 1
+                                                  uvs[n+1],
+                                                  uvs[n+2], //vertex 2
+                                                  uvs[n+3],
+                                                  uvs[n+4], //vertex 3
+                                                  uvs[n+5]]));
       }
     };
 
@@ -179,7 +251,8 @@
 
   //Get attribute and uniform locations
   const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
-  const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
+  //const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
+  const texcoordAttributeLocation = gl.getAttribLocation(shaderProgram, 'texcoord');
   const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
   const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
   const u_mvp = gl.getUniformLocation(shaderProgram, 'mvp');
@@ -190,45 +263,83 @@
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
   const colors = [
-    1.0, 0.0, 0.0, //R
-    1.0, 0.65, 0.0, //O
-    1.0, 1.0, 0.0, //Y
-    0.0, 1.0, 0.0, //G
-    0.0, 0.0, 1.0, //B
+    1.0, 0.0, 0.0,   //R
+    1.0, 0.65, 0.0,  //O
+    1.0, 1.0, 0.0,   //Y
+    0.0, 1.0, 0.0,   //G
+    0.0, 0.0, 1.0,   //B
     0.29, 0.0, 0.51, //I
-    0.5, 0.0, 1.0, //V
-    1.0, 0.0, 0.0, //R
-    1.0, 0.65, 0.0, //O
-    1.0, 1.0, 0.0, //Y
-    0.0, 1.0, 0.0, //G
-    0.0, 0.0, 1.0, //B
+    0.5, 0.0, 1.0,   //V
+    1.0, 0.0, 0.0,   //R
+    1.0, 0.65, 0.0,  //O
+    1.0, 1.0, 0.0,   //Y
+    0.0, 1.0, 0.0,   //G
+    0.0, 0.0, 1.0,   //B
   ];
- 
+
   const ico = createIcosphere(colors);
   ico.subdivide();
   ico.subdivide();
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getVertices()), gl.STATIC_DRAW);
   
-  //Set attributes
+  //Set positions
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-  
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getColors()), gl.STATIC_DRAW);
-  
-  gl.enableVertexAttribArray(colorAttributeLocation);
-  gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+ 
+  //Set colors
+  //const colorBuffer = gl.createBuffer();
+  //gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  //
+  //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getColors()), gl.STATIC_DRAW);
+  //
+  //gl.enableVertexAttribArray(colorAttributeLocation);
+  //gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
   
   //Set uniforms
   gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-  
+ 
+  //create perspective matrices
   const projection = mat4.create();
   const modelview = mat4.create();
   const mvp = mat4.create();
-  
+
+  //Set uvs
+  const textureBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+  gl.enableVertexAttribArray(texcoordAttributeLocation);
+  gl.vertexAttribPointer(texcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getUvs()), gl.STATIC_DRAW);
+
+  //Create texture
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  //Fill the texture with placeholder value
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array([0, 0, 255, 255]));
+
+  //Asynchronously load an image
+  var image = new Image();
+  image.src = "./dymaxion-earth-numbers.jpg";
+  image.addEventListener('load', function() {
+    //Copy image to the texture
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+    //Check if image is a power of 2 in both dimensions
+    //if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+    //  //Yes, generate mips
+    //  gl.generateMipmap(gl.TEXTURE_2D);
+    //} else {
+      //No, turn off mips and set wrapping to clamp to edge
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    //}
+    //gl.generateMipmap(gl.TEXTURE_2D);
+  });
+
   function render() {
     gl.uniform1f(timeUniformLocation, performance.now() / 1000);
     mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
@@ -240,7 +351,7 @@
     mat4.multiply(mvp, projection, modelview);
     gl.uniformMatrix4fv(u_mvp, false, mvp);
   
-    gl.drawArrays(gl.TRIANGLES /* TRIANGLE_STRIP */, 0, ico.numVertices()); //60 comes from 20 triangles, 3 vertices each
+    gl.drawArrays(gl.TRIANGLES /* TRIANGLE_STRIP */, 0, ico.numVertices());
     requestAnimationFrame(render);
   }
   
