@@ -21,34 +21,38 @@
 <canvas id="canvas"></canvas>
 <script>
   const mat4 = glMatrix.mat4;
+  const PI = 3.141592653589792;
+
+  const isPowerOf2 = function(n) {
+    if (n == 2) {
+      return true;
+    } else if (n < 2) {
+      return false;
+    } else {
+      return isPowerOf2(n/2);
+    }
+  }
   
   const vertexShaderSource = `
   	attribute vec3 position;
-  	//attribute vec3 vertexcolor;
     attribute vec2 texcoord; 
   	uniform mat4 mvp;
   
-    //varying vec3 color;
     varying vec2 uv;
   
   	void main() {
-  	  //color = vertexcolor;
       uv = texcoord;
   	  gl_Position = mvp * vec4(normalize(position), 1.0);
-  	  //gl_Position = mvp * vec4(position, 1.0);
-  	  //gl_Position = vec4(normalize(vec3(gl_Position.x, gl_Position.y, gl_Position.z)), 1.0);
   	}
   `;
   const fragmentShaderSource = `
   	precision highp float;
   	uniform vec2 resolution;
   	uniform float time;
-  	//varying vec3 color;
   	varying vec2 uv;
     uniform sampler2D texture;
   
   	void main() {
-  	  //gl_FragColor = vec4(color, 1.0);
   	  gl_FragColor = texture2D(texture, uv);
   	}
   `;
@@ -96,7 +100,7 @@
       7,2,11
     ];
 
-    let uvs = [
+    let dymaxion_uvs = [
       693.0/1024.0, 267.0/449.0,  539.0/1024.0, 267.0/449.0,  616.0/1024.0, 399.0/449.0, //0,4,1
       693.0/1024.0, 267.0/449.0,  615.0/1024.0, 133.0/449.0,  539.0/1024.0, 266.0/449.0, //0,9,4
       615.0/1024.0, 133.0/449.0,  461.0/1024.0, 133.0/449.0,  539.0/1024.0, 266.0/449.0, //9,5,4
@@ -117,6 +121,29 @@
       615.0/1024.0, 133.0/449.0,  769.0/1024.0, 133.0/449.0,  693.0/1024.0, 0.000/449.0, //9,11,2
       615.0/1024.0, 133.0/449.0,  539.0/1024.0, 0.000/449.0,  462.0/1024.0, 133.0/449.0, //9,2,5
       846.0/1024.0, 0.000/449.0,  693.0/1024.0, 0.000/449.0,  769.0/1024.0, 133.0/449.0  //7,2,11
+    ];
+
+    let uvs = [
+      185.0/1024.0, 171.0/512.0,  92.00/1024.0, 0.000/512.0,  0.000/1024.0, 171.0/512.0, //0,4,1
+      186.0/1024.0, 171.0/512.0,  372.0/1024.0, 171.0/512.0,  279.0/1024.0, 0.000/512.0, //0,9,4
+      372.0/1024.0, 171.0/512.0,  558.0/1024.0, 171.0/512.0,  465.0/1024.0, 0.000/512.0, //9,5,4
+      651.0/1024.0, 0.000/512.0,  559.0/1024.0, 171.0/512.0,  744.0/1024.0, 171.0/512.0, //4,5,8
+      837.0/1024.0, 0.000/512.0,  745.0/1024.0, 171.0/512.0,  930.0/1024.0, 171.0/512.0, //4,8,1
+      744.0/1024.0, 171.0/512.0,  838.0/1024.0, 341.0/512.0,  930.0/1024.0, 171.0/512.0, //8,10,1
+      744.0/1024.0, 171.0/512.0,  651.0/1024.0, 341.0/512.0,  837.0/1024.0, 341.0/512.0, //8,3,10
+      558.0/1024.0, 171.0/512.0,  652.0/1024.0, 341.0/512.0,  745.0/1024.0, 171.0/512.0, //5,3,8
+      558.0/1024.0, 171.0/512.0,  465.0/1024.0, 341.0/512.0,  651.0/1024.0, 341.0/512.0, //5,2,3
+      465.0/1024.0, 341.0/512.0,  558.0/1024.0, 511.0/512.0,  651.0/1024.0, 341.0/512.0, //2,7,3
+      744.0/1024.0, 511.0/512.0,  837.0/1024.0, 341.0/512.0,  651.0/1024.0, 341.0/512.0, //7,10,3
+      931.0/1024.0, 511.0/512.0,  1023./1024.00, 341.0/512.0, 837.0/1024.0, 341.0/512.0, //7,6,10
+      185.0/1024.0, 511.0/512.0,  279.0/1024.0, 341.0/512.0,  93.00/1024.0, 341.0/512.0, //7,11,6
+      279.0/1024.0, 341.0/512.0,  185.0/1024.0, 171.0/512.0,  93.00/1024.0, 341.0/512.0, //11,0,6
+      185.0/1024.0, 171.0/512.0,  0.000/1024.0, 171.0/512.0,  93.00/1024.0, 341.0/512.0, //0,1,6
+      1023./1024.00, 341.0/512.0, 930.0/1024.0, 171.0/512.0,  837.0/1024.0, 341.0/512.0, //6,1,10
+      372.0/1024.0, 171.0/512.0,  185.0/1024.0, 171.0/512.0,  279.0/1024.0, 341.0/512.0, //9,0,11
+      372.0/1024.0, 171.0/512.0,  279.0/1024.0, 341.0/512.0,  465.0/1024.0, 341.0/512.0, //9,11,2
+      372.0/1024.0, 171.0/512.0,  465.0/1024.0, 341.0/512.0,  558.0/1024.0, 171.0/512.0, //9,2,5
+      372.0/1024.0, 511.0/512.0,  465.0/1024.0, 341.0/512.0,  279.0/1024.0, 341.0/512.0  //7,2,11
     ];
  
     let vertices = indices.flatMap((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]);
@@ -251,7 +278,6 @@
 
   //Get attribute and uniform locations
   const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
-  //const colorAttributeLocation = gl.getAttribLocation(shaderProgram, 'vertexcolor');
   const texcoordAttributeLocation = gl.getAttribLocation(shaderProgram, 'texcoord');
   const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
   const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
@@ -280,6 +306,7 @@
   const ico = createIcosphere(colors);
   ico.subdivide();
   ico.subdivide();
+  ico.subdivide();
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getVertices()), gl.STATIC_DRAW);
   
@@ -287,15 +314,6 @@
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
  
-  //Set colors
-  //const colorBuffer = gl.createBuffer();
-  //gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  //
-  //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getColors()), gl.STATIC_DRAW);
-  //
-  //gl.enableVertexAttribArray(colorAttributeLocation);
-  //gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 0, 0);
-  
   //Set uniforms
   gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
  
@@ -321,23 +339,22 @@
 
   //Asynchronously load an image
   var image = new Image();
-  image.src = "./dymaxion-earth-numbers.jpg";
+  image.src = "./earth-bath.jpg";
   image.addEventListener('load', function() {
     //Copy image to the texture
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
     //Check if image is a power of 2 in both dimensions
-    //if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-    //  //Yes, generate mips
-    //  gl.generateMipmap(gl.TEXTURE_2D);
-    //} else {
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+      //Yes, generate mips
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
       //No, turn off mips and set wrapping to clamp to edge
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    //}
-    //gl.generateMipmap(gl.TEXTURE_2D);
+    }
   });
 
   function render() {
@@ -345,8 +362,8 @@
     mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
     mat4.lookAt(modelview, [2,2,6], [0,0,0], [0,1,0]);
   
-    mat4.rotateZ(modelview, modelview, performance.now() / 1000);
-    mat4.rotateX(modelview, modelview, performance.now() / 1000);
+    mat4.rotateY(modelview, modelview, performance.now() / 1000);
+    mat4.rotateX(modelview, modelview, ((2*PI) - (PI/5.5)));
   
     mat4.multiply(mvp, projection, modelview);
     gl.uniformMatrix4fv(u_mvp, false, mvp);
