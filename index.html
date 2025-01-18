@@ -2,7 +2,7 @@
 <html lang="en" style="text-align:center;">
 <head>
 	<meta charset="UTF-8">
-  <title>:]</title>
+  <title>:3</title>
 	<style>
 	  canvas {
 	    padding-left: 0;
@@ -11,7 +11,7 @@
 	    margin-right: auto;
 	    display: block;
 	    width: 400px;
-	    height: 400px;
+	    height: 300px;
 	  }
 
     .slidecontainer {
@@ -25,7 +25,7 @@
 	</style>
 </head>
 <body>
-<h2>globe <3</h2>
+<h2>:3</h2>
 <script src="./gl-matrix-min.js"></script>
 <canvas id="canvas"></canvas>
 <script>
@@ -34,16 +34,70 @@
   const PI = 3.141592653589792;
 
   const isPowerOf2 = function(n) {
-    if (n == 2) {
-      return true;
-    } else if (n < 2) {
-      return false;
-    } else {
-      return isPowerOf2(n/2);
-    }
+    return (n > 0 && (n & (n - 1)) === 0);
   }
   
-  const vertexShaderSource = `
+  const earthVertexShaderSource = `
+  	attribute vec3 position;
+    attribute vec2 texcoord;
+
+  	uniform mat4 mvp;
+    uniform mat4 mit;
+
+    uniform vec3 lightpos;
+    uniform vec3 camerapos;
+
+    varying vec2 uv;
+    varying vec3 v_normal;
+    varying vec3 v_surfacetolight;
+    varying vec3 v_surfacetocamera;
+  
+  	void main() {
+      vec3 normal = normalize(position); 
+      v_normal = mat3(mit) * normal;
+      uv = texcoord;
+  	  gl_Position = mvp * vec4(normalize(position), 1.0);
+      v_surfacetolight = lightpos - position;
+      v_surfacetocamera = camerapos - position;
+  	}
+  `;
+  const earthFragmentShaderSource = `
+  	precision highp float;
+  	uniform vec2 resolution;
+  	uniform float time;
+    uniform sampler2D texture;
+
+  	varying vec2 uv;
+  	varying vec3 v_normal;
+  	varying vec3 v_surfacetolight;
+  	varying vec3 v_surfacetocamera;
+
+    uniform float shininess;
+    uniform float lightcolor;
+    uniform float specularcolor;
+  
+  	void main() {
+      vec3 normal = normalize(v_normal);
+      vec3 surfaceToLight = normalize(v_surfacetolight);
+      vec3 surfaceToCamera = normalize(v_surfacetocamera);
+      vec3 halfVector = normalize(surfaceToLight + surfaceToCamera);
+      float ambient = 0.2;
+
+      float light = dot(normal, normalize(v_surfacetolight));
+      float specular = 0.0;
+      if (light > 0.0) {
+        specular = pow(dot(normal, halfVector), shininess);
+      }
+
+  	  gl_FragColor = texture2D(texture, uv);
+      gl_FragColor.a = 1.0;
+      light *= 1.9;
+      gl_FragColor.rgb *= light * vec3(1.0, 1.0, 1.0);
+      gl_FragColor.rgb += specular * vec3(0.9, 0.9, 1.0);
+  	}
+  `;
+
+  const scVertexShaderSource = `
   	attribute vec3 position;
     attribute vec2 texcoord; 
   	uniform mat4 mvp;
@@ -55,7 +109,8 @@
   	  gl_Position = mvp * vec4(normalize(position), 1.0);
   	}
   `;
-  const fragmentShaderSource = `
+
+  const scFragmentShaderSource = `
   	precision highp float;
   	uniform vec2 resolution;
   	uniform float time;
@@ -76,7 +131,69 @@
   }
 
   const UP = extend({x: 0, y: Z, z: X}, 1.0);
-  
+  const EARTH_CAMERA_POS = [-4*UP.x,-4*UP.y,-4*UP.z];
+  const EARTH_LIGHT_POS = [-100*UP.y, UP.y, -100*UP.z];
+ 
+  const createSpinningKitty = function () {
+    const X = 0.525731112119133606/2.0;
+    const Z = 0.850650808352039932/2.0;
+    const DEL = 0.35355339;
+    const UP = {x: 0.0, y: Z, z: X};   //4
+
+    //const positions = [
+    //  -X, Z, X, //0
+    //   X, Z, X, //1
+    //   X, Z,-X, //2
+    //  -X, Z,-X  //3
+    //];
+
+    //Theres gonna be a ratio of UP.y/UP.z, because UP.x is 0...
+    //const positions = [
+    //  UP.x, UP.y-0.5, UP.z+0.5, //0
+    //  UP.x, UP.y+0.5, UP.z+0.5, //1
+    //  UP.x, UP.y+0.5, UP.z-0.5, //2
+    //  UP.x, UP.y-0.5, UP.z-0.5  //3
+    //];
+
+    const positions = [
+      UP.x-0.5, UP.y+DEL, UP.z-DEL,
+      UP.x+0.5, UP.y+DEL, UP.z-DEL,
+      UP.x+0.5, UP.y-DEL, UP.z+DEL,
+      UP.x-0.5, UP.y-DEL, UP.z+DEL
+    ];
+
+    //Notice how we wrap both triangles in the same order as to have
+    //the same normal vectors, so they are on the same side
+    const indices = [  //0+------+1
+      0,2,1,           //|\      |
+      0,3,2            //| \     |
+    ];                 //|  \    |
+                       //|   \   |
+                       //|    \  |
+                       //|     \ |
+                      //3+-------+2
+    const uvs = [
+      0.0, 1.0,  1.0, 0.0,  1.0, 1.0, //0,2,1
+      0.0, 1.0,  0.0, 0.0,  1.0, 0.0  //0,3,2
+    ];
+    
+    const vertices = indices.flatMap((n) => [positions[3*n], positions[(3*n)+1], positions[(3*n)+2]]);
+
+    const kitty = {
+      getVertices() {
+	      return vertices;
+      },
+      getUvs() {
+        return uvs;
+      },
+      numVertices() {
+        return vertices.length/3;
+      },
+    };
+
+    return kitty;
+  }
+
   const createIcosphere = function (COLORS) {
     const R = Z;
   
@@ -265,98 +382,95 @@
   const date = new Date();
   const canvas = document.getElementById('canvas');
   const gl = canvas.getContext('webgl');
-
-  //Create vertex shader
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-  gl.shaderSource(vertexShader, vertexShaderSource);
-  gl.compileShader(vertexShader);
-  
-  //Create fragment shader
-  const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-  gl.shaderSource(fragmentShader, fragmentShaderSource);
-  gl.compileShader(fragmentShader);
-  
-  //Create shader program
-  const shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
-  gl.useProgram(shaderProgram);
   
   gl.enable(gl.CULL_FACE);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.cullFace(gl.BACK);
 
+  //create perspective matrices
+  const earth_projection = mat4.create();
+  const earth_modelview = mat4.create();
+  const earth_mvp = mat4.create();
+  const earth_mit = mat4.create();
+  const earth_minv = mat4.create();
+
+  const sc_projection = mat4.create();
+  const sc_modelview = mat4.create();
+  const sc_mvp = mat4.create();
+
+  /*************************************** EARTH ***************************************/
+
+  //Create vertex shader
+  const earthVertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(earthVertexShader, earthVertexShaderSource);
+  gl.compileShader(earthVertexShader);
+  
+  //Create fragment shader
+  const earthFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(earthFragmentShader, earthFragmentShaderSource);
+  gl.compileShader(earthFragmentShader);
+  
+  //Create shader program
+  const earthShaderProgram = gl.createProgram();
+  gl.attachShader(earthShaderProgram, earthVertexShader);
+  gl.attachShader(earthShaderProgram, earthFragmentShader);
+  gl.linkProgram(earthShaderProgram);
+  gl.useProgram(earthShaderProgram);
+
   //Get attribute and uniform locations
-  const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'position');
-  const texcoordAttributeLocation = gl.getAttribLocation(shaderProgram, 'texcoord');
-  const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
-  const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
-  const u_mvp = gl.getUniformLocation(shaderProgram, 'mvp');
-  const u_normalmat = gl.getUniformLocation(shaderProgram, 'normalmat');
+  const earthPositionAttributeLocation = gl.getAttribLocation(earthShaderProgram, 'position');
+  const earthTexcoordAttributeLocation = gl.getAttribLocation(earthShaderProgram, 'texcoord');
+  const earthResolutionUniformLocation = gl.getUniformLocation(earthShaderProgram, 'resolution');
+  const earthTimeUniformLocation = gl.getUniformLocation(earthShaderProgram, 'time');
+  const earthMvpUniformLocation = gl.getUniformLocation(earthShaderProgram, 'mvp');
+  const earthMitUniformLocation = gl.getUniformLocation(earthShaderProgram, 'mit');
+  const earthLightPosUniformLocation = gl.getUniformLocation(earthShaderProgram, 'lightpos');
+  const earthCameraPosUniformLocation = gl.getUniformLocation(earthShaderProgram, 'camerapos');
+  const earthShininessUniformLocation = gl.getUniformLocation(earthShaderProgram, 'shininess');
   
   //Create buffer
-  const positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  const earthPositionBuffer = gl.createBuffer();
 
-  const colors = [
-    1.0, 0.0, 0.0,   //R
-    1.0, 0.65, 0.0,  //O
-    1.0, 1.0, 0.0,   //Y
-    0.0, 1.0, 0.0,   //G
-    0.0, 0.0, 1.0,   //B
-    0.29, 0.0, 0.51, //I
-    0.5, 0.0, 1.0,   //V
-    1.0, 0.0, 0.0,   //R
-    1.0, 0.65, 0.0,  //O
-    1.0, 1.0, 0.0,   //Y
-    0.0, 1.0, 0.0,   //G
-    0.0, 0.0, 1.0,   //B
-  ];
+  const earth = createIcosphere([]);
+  earth.subdivide();
+  earth.subdivide();
+  earth.subdivide();
 
-  const ico = createIcosphere(colors);
-  ico.subdivide();
-  ico.subdivide();
-  ico.subdivide();
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getVertices()), gl.STATIC_DRAW);
-  
   //Set positions
-  gl.enableVertexAttribArray(positionAttributeLocation);
-  gl.vertexAttribPointer(positionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, earthPositionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getVertices()), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(earthPositionAttributeLocation);
+  gl.vertexAttribPointer(earthPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
  
   //Set uniforms
-  gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+  gl.uniform2f(earthResolutionUniformLocation, canvas.width, canvas.height);
  
-  //create perspective matrices
-  const projection = mat4.create();
-  const modelview = mat4.create();
-  const mvp = mat4.create();
-
-  //Set uvs
-  const textureBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-  gl.enableVertexAttribArray(texcoordAttributeLocation);
-  gl.vertexAttribPointer(texcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ico.getUvs()), gl.STATIC_DRAW);
+  //Set earth uvs
+  const earthTextureBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, earthTextureBuffer);
+  gl.enableVertexAttribArray(earthTexcoordAttributeLocation);
+  gl.vertexAttribPointer(earthTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getUvs()), gl.STATIC_DRAW);
 
   //Create texture
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const earthTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, earthTexture);
 
   //Fill the texture with placeholder value
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
                 new Uint8Array([0, 0, 255, 255]));
 
   //Asynchronously load an image
-  var image = new Image();
-  image.src = "./earth-bath.png";
-  image.addEventListener('load', function() {
+  var earthImage = new Image();
+  earthImage.src = "./earth-bath.png";
+  earthImage.addEventListener('load', function() {
     //Copy image to the texture
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.bindTexture(gl.TEXTURE_2D, earthTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, earthImage);
 
     //Check if image is a power of 2 in both dimensions
-    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+    if (isPowerOf2(earthImage.width) && isPowerOf2(earthImage.height)) {
       //Yes, generate mips
       gl.generateMipmap(gl.TEXTURE_2D);
     } else {
@@ -367,18 +481,184 @@
     }
   });
 
+  /*************************************** SPINNY CAT ***************************************/
+
+  //Create vertex shader
+  const scVertexShader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(scVertexShader, scVertexShaderSource);
+  gl.compileShader(scVertexShader);
+  
+  //Create fragment shader
+  const scFragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(scFragmentShader, scFragmentShaderSource);
+  gl.compileShader(scFragmentShader);
+  
+  //Create shader program
+  const scShaderProgram = gl.createProgram();
+  gl.attachShader(scShaderProgram, scVertexShader);
+  gl.attachShader(scShaderProgram, scFragmentShader);
+  gl.linkProgram(scShaderProgram);
+  gl.useProgram(scShaderProgram);
+
+  //Get attribute and uniform locations
+  const scPositionAttributeLocation = gl.getAttribLocation(scShaderProgram, 'position');
+  const scTexcoordAttributeLocation = gl.getAttribLocation(scShaderProgram, 'texcoord');
+  const scResolutionUniformLocation = gl.getUniformLocation(scShaderProgram, 'resolution');
+  const scTimeUniformLocation = gl.getUniformLocation(scShaderProgram, 'time');
+  const scMvpUniformLocation = gl.getUniformLocation(scShaderProgram, 'mvp');
+  const scNormalMatUniformLocation = gl.getUniformLocation(scShaderProgram, 'normalmat');
+  
+  //Create buffer
+  const scPositionBuffer = gl.createBuffer();
+
+  const sc = createSpinningKitty();
+
+  //Set positions
+  gl.bindBuffer(gl.ARRAY_BUFFER, scPositionBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sc.getVertices()), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(scPositionAttributeLocation);
+  gl.vertexAttribPointer(scPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+ 
+  //Set uniforms
+  gl.uniform2f(scResolutionUniformLocation, canvas.width, canvas.height);
+ 
+  //Set spinning cat uvs
+  const scTextureBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, scTextureBuffer);
+  gl.enableVertexAttribArray(scTexcoordAttributeLocation);
+  gl.vertexAttribPointer(scTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sc.getUvs()), gl.STATIC_DRAW);
+
+  //Create texture
+  const scTexture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, scTexture);
+
+  //Fill the texture with placeholder value
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                new Uint8Array([0, 0, 255, 255]));
+
+  //Asynchronously load an image
+  var scImage = new Image();
+  scImage.src = "./neon-cat.png";
+  scImage.addEventListener('load', function() {
+    //Copy image to the texture
+    gl.bindTexture(gl.TEXTURE_2D, scTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scImage);
+
+    //Check if image is a power of 2 in both dimensions
+    if (isPowerOf2(scImage.width) && isPowerOf2(scImage.height)) {
+      //Yes, generate mips
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+      //No, turn off mips and set wrapping to clamp to edge
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+  });
+
+  // **********************************************************************************************
+  // RENDER LOOP
+  // Render earth first, then kitty
+  // **********************************************************************************************
+
   function render() {
-    gl.uniform1f(timeUniformLocation, performance.now() / 1000);
-    mat4.ortho(projection, -2, 2, -2, 2, 4, 8);
-    mat4.lookAt(modelview, [0,2,-5], [0,0,0], [UP.x,UP.y,UP.z]);
+    mat4.perspective(earth_projection, -PI/4, 4.0/3.0, 0, Number.POSITIVE_INFINITY);
+    mat4.perspective(sc_projection, PI/1.5, 4.0/3.0, 0, 1);
   
-    mat4.rotateZ(modelview, modelview, -0.4);
-    mat4.rotate(modelview, modelview, (performance.now()/4096), [UP.x, UP.y, UP.z]);
+    //mat4.lookAt(modelview, [-4*UP.x,-4*UP.y,-4*UP.z], [0,0,0], [UP.x,UP.y,UP.z]);
+    mat4.lookAt(earth_modelview, EARTH_CAMERA_POS, [0,0,0], [UP.x,UP.y,UP.z]);
+    mat4.rotate(earth_modelview, earth_modelview, (performance.now()/4096), [UP.x, UP.y, UP.z]);
+    mat4.rotateZ(earth_modelview, earth_modelview, -0.4);
   
-    mat4.multiply(mvp, projection, modelview);
-    gl.uniformMatrix4fv(u_mvp, false, mvp);
+    //mat4.lookAt(modelview, [-4*UP.x,-4*UP.y,-4*UP.z], [0,0,0], [UP.x,UP.y,UP.z]);
+    mat4.lookAt(sc_modelview, [2*UP.x,2*UP.y,2*UP.z], [0,0,0], [UP.x,UP.y,UP.z]);
+    //mat4.rotateZ(sc_modelview, sc_modelview, -0.4);
+    //mat4.rotateZ(sc_modelview, sc_modelview, 0.4);
+    mat4.rotate(sc_modelview, sc_modelview, -(performance.now()/4096), [UP.x, UP.y, UP.z]);
   
-    gl.drawArrays(gl.TRIANGLES /* TRIANGLE_STRIP */, 0, ico.numVertices());
+    mat4.multiply(earth_mvp, earth_projection, earth_modelview);
+    mat4.multiply(sc_mvp, sc_projection, sc_modelview);
+
+    mat4.invert(earth_minv, earth_modelview);
+    mat4.transpose(earth_mit, earth_minv);
+
+    //Bind earth program
+    gl.useProgram(earthShaderProgram);
+
+    //Set earth positions
+    gl.bindBuffer(gl.ARRAY_BUFFER, earthPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getVertices()), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(earthPositionAttributeLocation);
+    gl.vertexAttribPointer(earthPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+
+    //Set earth uvs
+    gl.bindBuffer(gl.ARRAY_BUFFER, earthTextureBuffer);
+    gl.enableVertexAttribArray(earthTexcoordAttributeLocation);
+    gl.vertexAttribPointer(earthTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getUvs()), gl.STATIC_DRAW);
+
+    //Set earth uniforms
+    gl.uniform1f(earthTimeUniformLocation, performance.now() / 1000);
+    gl.uniform1f(earthShininessUniformLocation, 150.0);
+    gl.uniformMatrix4fv(earthMvpUniformLocation, false, earth_mvp);
+    gl.uniformMatrix4fv(earthMitUniformLocation, false, earth_mit);
+    gl.uniform3fv(earthLightPosUniformLocation, new Float32Array(EARTH_LIGHT_POS));
+    gl.uniform3fv(earthCameraPosUniformLocation, new Float32Array(EARTH_CAMERA_POS));
+
+    //Set earth texture
+    gl.bindTexture(gl.TEXTURE_2D, earthTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, earthImage);
+
+    //Check if image is a power of 2 in both dimensions
+    if (isPowerOf2(earthImage.width) && isPowerOf2(earthImage.height)) {
+      //Yes, generate mips
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+      //No, turn off mips and set wrapping to clamp to edge
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    //Draw earth
+    gl.drawArrays(gl.TRIANGLES /* TRIANGLE_STRIP */, 0, earth.numVertices());
+
+    //Link spinny cat program
+    gl.useProgram(scShaderProgram);
+
+    //Set positions
+    gl.bindBuffer(gl.ARRAY_BUFFER, scPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sc.getVertices()), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(scPositionAttributeLocation);
+    gl.vertexAttribPointer(scPositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+   
+    //Set uniforms
+    gl.uniform2f(scResolutionUniformLocation, canvas.width, canvas.height);
+    gl.uniform1f(scTimeUniformLocation, performance.now() / 1000);
+    gl.uniformMatrix4fv(scMvpUniformLocation, false, sc_mvp);
+   
+    //Set spinning cat uvs
+    gl.bindBuffer(gl.ARRAY_BUFFER, scTextureBuffer);
+    gl.enableVertexAttribArray(scTexcoordAttributeLocation);
+    gl.vertexAttribPointer(scTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sc.getUvs()), gl.STATIC_DRAW);
+
+    //Copy image to the texture
+    gl.bindTexture(gl.TEXTURE_2D, scTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, scImage);
+
+    //Check if image is a power of 2 in both dimensions
+    if (isPowerOf2(scImage.width) && isPowerOf2(scImage.height)) {
+      //Yes, generate mips
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+      //No, turn off mips and set wrapping to clamp to edge
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+    gl.drawArrays(gl.TRIANGLES /* TRIANGLE_STRIP */, 0, sc.numVertices());
+
     requestAnimationFrame(render);
   }
   
