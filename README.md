@@ -8,6 +8,11 @@ To build the image, run:
 Then to build the container:
 `docker run --name CONTAINER_NAME -p 8080:3000 -d IMAGE_NAME`
 
+Then on subsequent starts you can just do:
+`docker start CONTAINER_NAME`
+
+You don't have to build the image or the container again.
+
 Note that we mapped port 8080 on the host to 3000 on the conatainer.  I have Express
 setup to use port 3000, so we have to map whatever port we want to use on the host to
 that, but otherwise I chose 8080 arbitrarily.
