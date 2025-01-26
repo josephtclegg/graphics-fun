@@ -6,10 +6,13 @@ To build the image, run:
 *Hint: don't forget to start docker-desktop ;)
 
 Then to build the container:
-`docker run --name CONTAINER_NAME -p 8080:3000 -d IMAGE_NAME`
+`docker run --mount type=bind,src=./PATH/TO/SSL/KEYS,dst=/home/node/app/keys --name CONTAINER_NAME -p 443:3000 -p 80:8080 -d IMAGE_NAME`
 
 Then on subsequent starts you can just do:
 `docker start CONTAINER_NAME`
+
+Note that when you run the container, you have to supply the location of your server's SSL certificate .crt
+file, which MUST be named server.crt, and your private key, which MUST be named server.key
 
 You don't have to build the image or the container again.
 

@@ -1,7 +1,13 @@
 const express = require('express');
 const path = require('path');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
 const app = express();
-const port = 3000;
+const options = {
+  key: fs.readFileSync(path.join(__dirname, '/keys/', 'server.key')),
+  cert: fs.readFileSync(path.join(__dirname, '/keys/', 'server.crt'))
+};
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, '/', 'index.html'));
@@ -13,6 +19,5 @@ app.get("/globecat", (req, res) => {
 
 app.use(express.static(__dirname + '/public/'));
 
-app.listen(port, () => {
-  console.log(`listening on port ${port}!`);
-});
+http.createServer(app).listen(8080);
+https.createServer(options, app).listen(3000);

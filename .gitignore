@@ -1,3 +1,10 @@
 node_modules/
 package-lock.json
 public/gl-matrix-min.js
+/keys
+/keys/*
+/ssl
+/ssl/*
+*.key
+*.csr
+*.crt
