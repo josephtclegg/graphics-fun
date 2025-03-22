@@ -216,6 +216,19 @@
         same-size area from the texture into different-sized areas of the sphere.</p>
       </div>
       <div class="right-column" width="256px" height="768px">
+        <p>We can mitigate this issue with techniques like <i>UV unwrapping</i>, which I won't go too far into right now but
+        basically the idea is to distort the texture to account for the inherent distortion from projection on to the sphere,
+        but they have caveats too.  Namely, in the case of UV unwrapping, things get complicated when we start trying to do
+        procedural geometry, like the demos here.  Really what we need is to rethink how we generate the sphere, and texture it,
+        such that we get around this distortion issue.  One idea is to take some basic shape and <i>subdivide</i> it, splitting
+        each face into a tesselation of sub-faces of the same basic shape, for some arbitrary number of subdivisions, and then
+        extending all the resulting vertices to some distance <i>r</i> representing the radius of the sphere.  As we increase the
+        number of subdivisions, the resulting geometry more-closely approximates a sphere of radius <i>r</i>.</p>
+
+        <p>Interestingly, the choice of primitive geometry as a starting point affects the properties of the resulting sphere, at
+        least where UV distortion is concerned.  Particularly the distortion is isolated to different regions.  I've included here
+        two subdivided-sphere demos starting from different underlying geometries.  Notice the different patterns of distortion in
+        each.</p>
       </div>
     </div>
     <div class="center-column" width="512px">
@@ -263,6 +276,16 @@
       </div>
       <script src="./icosphere.js"></script>
       <script src="./icoearth.js"></script>
+      <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
+      landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
+      bunch of little guys holding hands, small world or whatever.</p>
+      <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
+      produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
+      it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
+      good case to make that this one is the most practical.</p>
+      <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
+      way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
+      the thing; your mileage may vary.</p>
     </div>
   </div>
 </div>

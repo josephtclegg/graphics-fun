@@ -30,9 +30,12 @@ function uvEarthCanvas() {
     void main () {
       //vec3 normal = normalize(position);
       //cylindrical projection
-      float u = (atan(normal.x, normal.z)/PI) + 0.5;
-      float v = asin(normal.y)/PI + 0.5;
-      uv = vec2(u, -1.0*v);
+      //float u = (atan(normal.x, normal.z)/PI) + 0.5;
+      //float v = asin(normal.y)/PI + 0.5;
+      vec3 norm_coord = normalize(position);
+      float u = 0.5 - 0.5 * atan(norm_coord.z, norm_coord.x) / (3.141592653589792);
+      float v = 0.5 - 0.5 * asin(norm_coord.y) / (3.141592653589792 / 2.0);
+      uv = vec2(u, v);
       pos = position;
       gl_Position = mvp * vec4(normalize(position), 1.0);
     }
