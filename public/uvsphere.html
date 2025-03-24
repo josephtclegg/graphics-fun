@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV-sphere demo</title>
+<style>
+.spherecanvas {
+    width: 250px;
+    height: 250px;
+}
+
+.twocanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.slidercontainer {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: start;
+  align-items: start;
+}
+
+#uvspherelabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.sphereslider {
+  opacity: 0.2;
+}
+</style>
+  </head>
+  <body>
+  <main>
+    <div class="twocanvas">
+      <canvas id="uvspherecanvas" class="spherecanvas" width="250" height="250"></canvas>
+      <canvas id="uvearthcanvas" class="spherecanvas" width="250" height="250"></canvas>
+    </div>
+    <label id ="uvspherelabel" for="uvspherecanvas">
+      <div class="slidercontainer">
+        <input type="range" orient="vertical" id="uvsphereslices" class="sphereslider" name="uvsphereslices" min="3" max="50">
+        <input type="range" orient="vertical" id="uvspherestacks" class="sphereslider" name="uvspherestacks" min="3" max="50">
+      </div>
+    </label>
+    <script src="./gl-matrix-min.js"></script>
+    <script src="./uvsphere.js"></script>
+    <script src="./uvearth.js"></script>
+  </main>
+  </body>
+</html>

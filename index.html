@@ -86,20 +86,6 @@
       text-align: left;
     }
 
-    .bottom-controls {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-    }
-
-    .demo-controls {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-    }
-
     .canvas-label {
       display: flex;
       flex-flow: column nowrap;
@@ -107,35 +93,8 @@
       font-size: 11px;
     }
 
-    .spherecanvas {
-      width: 250px;
-      height: 250px;
-    }
-
     .spherelabel {
       align-self: end;
-    }
-
-    .sphereslider {
-    }
-
-    .slidercontainer {
-      display: flex;
-      flex-flow: column nowrap;
-      justify-content: start;
-      align-items: start;
-    }
-
-    .twocanvas {
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-around;
-      width: 512px;
-    }
-
-    .bottomrightimg {
-      align-self: end;
-      z-index: -3;
     }
 	</style>
 </head>
@@ -151,27 +110,12 @@
       <h3><u>UV Distortion</u></h3>
     </div>
     <div class="center-column" width="512px">
-      <div class="bottom-controls">
-        <div class="canvas-label">
-          <label class="spherelabel" for="uvspherecanvas">
-            <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
-              <i>UV-sphere</i>
-            </a>
-          </label>
-          <div class="twocanvas">
-            <canvas id="uvspherecanvas" class="spherecanvas" width="250" height="250"></canvas>
-            <canvas id="uvearthcanvas" class="spherecanvas" width="250" height="250"></canvas>
-          </div>
-          <label id ="uvspherelabel" for="uvspherecanvas">
-            <div class="slidercontainer">
-              <input type="range" id="uvsphereslices" class="sphereslider" name="uvsphereslices" min="3" max="50">
-              <input type="range" id="uvspherestacks" class="sphereslider" name="uvspherestacks" min="3" max="50">
-            </div>
-          </label>
-        </div>
-      </div>
-      <script src="./uvsphere.js"></script>
-      <script src="./uvearth.js"></script>
+      <label class="spherelabel" for="uvsphereiframe">
+        <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
+          <i>UV-sphere</i>
+        </a>
+      </label>
+      <iframe id="uvsphereiframe" src="uvsphere.html" title="UV-sphere" width="512" height="256" frameBorder="0"></iframe>
     </div>
     <div class="leftright-columns" width="512px">
       <div class="left-column" width="256px">
@@ -232,60 +176,38 @@
       </div>
     </div>
     <div class="center-column" width="512px">
-      <div class="bottom-controls">
-        <div class="canvas-label">
-          <label class="spherelabel" for="cubespherecanvas">
-            <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
-              <i>Quadsphere</i>
-            </a>
-          </label>
-          <div class="twocanvas">
-            <canvas id="cubespherecanvas" class="spherecanvas" width="250px" height="250px"></canvas>
-            <canvas id="quadsphereearthcanvas" class="spherecanvas" width="250px" height="250px"></canvas>
-          </div>
-          <label for="cubespherecanvas">
-            <div class="slidercontainer">
-              <input type="range" id="cubespheresubdivisions" class="sphereslider" name="cubespheresubdivisions" min="0" max="4">
-            </div>
-          </label>
-        </div>
-      </div>
-      <script src="./quadsphere.js"></script>
-      <script src="./quadsphereearth.js"></script>
+      <label class="spherelabel" for="quadsphereiframe">
+        <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
+          <i>Quadsphere</i>
+        </a>
+      </label>
+      <iframe id="quadsphereiframe" src="quadsphere.html" title="Quadsphere" width="512" height="256" frameBorder="0"></iframe>
     </div>
   </div>
   <div id="page3" class="page" width="512px" height="768px">
-    <div class="left-column" width="256px" height="768px">
-      <div class="bottom-controls">
-        <div class="canvas-label">
-          <label class="spherelabel" id="icospherelabel" for="icospherecanvas">
-            <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
-              <i>Icosphere</i>
-            </a>
-          </label>
-          <div class="twocanvas">
-            <canvas id="icospherecanvas" class="spherecanvas" width="250" height="250"></canvas>
-            <canvas id="icoearthcanvas" class="spherecanvas" width="250" height="250"></canvas>
-          </div>
-          <label id ="icospherelabel" for="icospherecanvas">
-            <div class="slidercontainer">
-              <input type="range" id="icospheresubdivisions" class="sphereslider" name="icospheresubdivisions" min="0" max="3">
-            </div>
-          </label>
-        </div>
+    <div class="center-column" width="512px">
+      <label class="spherelabel" for="icosphereiframe">
+        <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
+          <i>Icosphere</i>
+        </a>
+      </label>
+      <iframe id="icosphereiframe" src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
+    </div>
+    <div class="leftright-columns" width="512px">
+      <div class="left-column" width="256px">
+        <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
+        landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
+        bunch of little guys holding hands, small world or whatever.</p>
+        <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
+        produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
+        it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
+        good case to make that this one is the most practical.</p>
+        <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
+        way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
+        the thing; your mileage may vary.</p>
       </div>
-      <script src="./icosphere.js"></script>
-      <script src="./icoearth.js"></script>
-      <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
-      landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
-      bunch of little guys holding hands, small world or whatever.</p>
-      <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
-      produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
-      it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
-      good case to make that this one is the most practical.</p>
-      <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
-      way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
-      the thing; your mileage may vary.</p>
+      <div class="right-column" width="256px">
+      </div>
     </div>
   </div>
 </div>
