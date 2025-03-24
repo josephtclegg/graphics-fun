@@ -101,15 +101,15 @@
 <body>
 <main>
 <script src="./gl-matrix-min.js"></script>
-<canvas id="bannercanvas" tabindex="1" width="512px" height="256px"></canvas>
-<input type="color" id="colorinput" width="16px" height="16px"/>
+<canvas id="bannercanvas" tabindex="1" width="512" height="256"></canvas>
+<input type="color" id="colorinput" width="16" height="16"/>
 <script src="./banner.js"></script>
 <div class="pagecontainer">
-  <div id="page1" class="page" width="512px" height="768px">
-    <div class="left-column" width="512px">
+  <div id="page1" class="page" width="512" height="768">
+    <div class="left-column" width="512">
       <h3><u>UV Distortion</u></h3>
     </div>
-    <div class="center-column" width="512px">
+    <div class="center-column" width="512">
       <label class="spherelabel" for="uvsphereiframe">
         <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
           <i>UV-sphere</i>
@@ -117,13 +117,13 @@
       </label>
       <iframe id="uvsphereiframe" src="uvsphere.html" title="UV-sphere" width="512" height="256" frameBorder="0"></iframe>
     </div>
-    <div class="leftright-columns" width="512px">
-      <div class="left-column" width="256px">
+    <div class="leftright-columns" width="512">
+      <div class="left-column" width="256">
         <p>When I first tried to make an OpenGL globe, I ended up with something like what you see here.
         No doubt, it has some problems.  Namely the texture is all stretched at the poles: just look at the size
         of Greenland!</p>
       </div>
-      <div class="right-column" width="256px">
+      <div class="right-column" width="256">
         <p>It has to do with how we textured the sphere.  In
         a traditional fixed rendering pipeline, like the one implemented by the WebGL API that we're using
         to run these demos on <i>your</i> GPU, to render a textured 3D object we need: an array of the object's vertices
@@ -139,9 +139,9 @@
       </div>
     </div>
   </div>
-  <div id="page2" class="page" width="512px" height="768px">
-    <div class="leftright-columns" width="512px">
-      <div class="left-column" width="256px">
+  <div id="page2" class="page" width="512" height="768">
+    <div class="leftright-columns" width="512">
+      <div class="left-column" width="256">
         <p>More aptly the problem is concerned with all three.  There are many possible aproaches to
         assembling the vertices for a sphere in a normalized 3D coordinate space.  For this example I went with
         the first technique I could think of, perhaps the first you think of as well, the <i>UV-Sphere</i>.
@@ -159,7 +159,7 @@
         you move through different latitudes of the sphere.  <i>UV distortion</i> is the result of squeezing the
         same-size area from the texture into different-sized areas of the sphere.</p>
       </div>
-      <div class="right-column" width="256px" height="768px">
+      <div class="right-column" width="256">
         <p>We can mitigate this issue with techniques like <i>UV unwrapping</i>, which I won't go too far into right now but
         basically the idea is to distort the texture to account for the inherent distortion from projection on to the sphere,
         but they have caveats too.  Namely, in the case of UV unwrapping, things get complicated when we start trying to do
@@ -175,7 +175,7 @@
         each.</p>
       </div>
     </div>
-    <div class="center-column" width="512px">
+    <div class="center-column" width="512">
       <label class="spherelabel" for="quadsphereiframe">
         <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
           <i>Quadsphere</i>
@@ -184,8 +184,8 @@
       <iframe id="quadsphereiframe" src="quadsphere.html" title="Quadsphere" width="512" height="256" frameBorder="0"></iframe>
     </div>
   </div>
-  <div id="page3" class="page" width="512px" height="768px">
-    <div class="center-column" width="512px">
+  <div id="page3" class="page" width="512" height="768">
+    <div class="center-column" width="512">
       <label class="spherelabel" for="icosphereiframe">
         <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
           <i>Icosphere</i>
@@ -193,8 +193,8 @@
       </label>
       <iframe id="icosphereiframe" src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
     </div>
-    <div class="leftright-columns" width="512px">
-      <div class="left-column" width="256px">
+    <div class="leftright-columns" width="512">
+      <div class="left-column" width="256">
         <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
         landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
         bunch of little guys holding hands, small world or whatever.</p>
@@ -206,7 +206,7 @@
         way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
         the thing; your mileage may vary.</p>
       </div>
-      <div class="right-column" width="256px">
+      <div class="right-column" width="256">
       </div>
     </div>
   </div>
