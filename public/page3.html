@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV Distortion</title>
+    <style>
+      main {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+      }
+
+      .page {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        font-size: 13px;
+        line-height: 13px;
+        font-family: Times;
+        text-align: left;
+      }
+
+      .left-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .right-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .leftright-columns {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .center-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: center;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .pagebuttons {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+        align-items: end;
+        width: 512px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <div id="page3" class="page" width="512" height="768">
+    <label class="spherelabel" for="icosphereiframe">
+      <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
+        <i>Icosphere</i>
+      </a>
+    </label>
+    <iframe id="icosphereiframe" src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
+    <div class="leftright-columns" width="512">
+      <div class="left-column" width="256">
+        <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
+        landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
+        bunch of little guys holding hands, small world or whatever.</p>
+        <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
+        produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
+        it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
+        good case to make that this one is the most practical.</p>
+        <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
+        way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
+        the thing; your mileage may vary.</p>
+      </div>
+      <div class="right-column" width="256">
+      </div>
+    </div>
+    <script type="text/javascript">
+      function flipPage(pagenum) {
+        parent.document.getElementById('pageiframe').setAttribute("src",pagenum);
+      }
+    </script>
+    <div class="center-column" width="512">
+      <div class="pagebuttons" width="512">
+        <a href="javascript:flipPage('page2.html')">Prev</a>
+        <a href="javascript:flipPage('page3.html')" style="opacity:0.3; pointer-events:none;">Next</a>
+      </div>
+    </div>
+  </div>
+</html>

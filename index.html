@@ -1,216 +1,87 @@
 <!DOCTYPE html>
 <html lang="en" style="text-align:left;">
-<head>
-	<meta charset="UTF-8">
-  <title>free goats :)</title>
-	<style>
-    main {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-    }
+  <head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Joe Clegg">
+    <title>free goats :)</title>
+    <style>
+      main {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: start;
+        justify-content: start;
+      }
 
-	  #bannercanvas {
-      width: 512px;
-      height: 256px;
-	  }
+      .pageandbanner {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+      }
 
-    #colorinput {
-	    padding-left: 0;
-	    padding-right: 0;
-	    margin-left: auto;
-	    margin-right: auto;
-      position: absolute;
-      width: 16px;
-      height: 16px;
-    }
+      #bannercanvas {
+        width: 512px;
+        height: 256px;
+      }
 
-    .pagecontainer {
-      display: flex;
-      flex-flow: row wrap;
-      max-width: 1024px;
-      min-width: 512px;
-    }
+      #colorinput {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        position: absolute;
+        width: 16px;
+        height: 16px;
+      }
 
-    .page {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-      width: 512px;
-      height: 768px;
-      font-size: 13px;
-      line-height: 13px;
-      font-family: Times;
-      text-align: left;
-    }
+      .pagecontainer {
+        width: 520px;
+        height: 785px;
+      }
 
-    .left-column {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-      width: 256px;
-      max-height: 768px;
-      text-align: left;
-    }
+      .canvas-label {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        font-size: 11px;
+      }
 
-    .right-column {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      justify-content: start;
-      width: 256px;
-      max-height: 768px;
-      text-align: left;
-    }
+      .spherelabel {
+        align-self: end;
+      }
 
-    .leftright-columns {
-      display: flex;
-      flex-flow: row nowrap;
-      align-items: start;
-      justify-content: start;
-      width: 512px;
-      max-height: 768px;
-      text-align: left;
-    }
+      .sidebar {
+        display: flex;
+        flex-flow: column nowrap;
+        justify-content: start;
+        align-items: start;
+        font-size: 11px;
+      }
 
-    .center-column {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: center;
-      justify-content: start;
-      width: 512px;
-      max-height: 768px;
-      text-align: left;
+      .pagelink {
+        min-height: 20px;
+      }
+	  </style>
+  </head>
+  <script type="text/javascript">
+    function flipPage(pagenum) {
+      document.getElementById('pageiframe').setAttribute("src",pagenum);
     }
-
-    .canvas-label {
-      display: flex;
-      flex-flow: column nowrap;
-      align-items: start;
-      font-size: 11px;
-    }
-
-    .spherelabel {
-      align-self: end;
-    }
-	</style>
-</head>
-<body>
-<main>
-<script src="./gl-matrix-min.js"></script>
-<canvas id="bannercanvas" tabindex="1" width="512" height="256"></canvas>
-<input type="color" id="colorinput" width="16" height="16"/>
-<script src="./banner.js"></script>
-<div class="pagecontainer">
-  <div id="page1" class="page" width="512" height="768">
-    <div class="left-column" width="512">
-      <h3><u>UV Distortion</u></h3>
-    </div>
-    <div class="center-column" width="512">
-      <label class="spherelabel" for="uvsphereiframe">
-        <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
-          <i>UV-sphere</i>
-        </a>
-      </label>
-      <iframe id="uvsphereiframe" src="uvsphere.html" title="UV-sphere" width="512" height="256" frameBorder="0"></iframe>
-    </div>
-    <div class="leftright-columns" width="512">
-      <div class="left-column" width="256">
-        <p>When I first tried to make an OpenGL globe, I ended up with something like what you see here.
-        No doubt, it has some problems.  Namely the texture is all stretched at the poles: just look at the size
-        of Greenland!</p>
+  </script>
+  <body>
+    <main>
+      <div class="pageandbanner">
+        <script src="./gl-matrix-min.js"></script>
+        <canvas id="bannercanvas" tabindex="1" width="512" height="256"></canvas>
+        <input type="color" id="colorinput" width="16" height="16"/>
+        <script src="./banner.js"></script>
+        <iframe id="pageiframe" class="pagecontainer" src="page1.html" title="UV-sphere" width="520" height="780" frameBorder="0"></iframe>
       </div>
-      <div class="right-column" width="256">
-        <p>It has to do with how we textured the sphere.  In
-        a traditional fixed rendering pipeline, like the one implemented by the WebGL API that we're using
-        to run these demos on <i>your</i> GPU, to render a textured 3D object we need: an array of the object's vertices
-        in a normalized 3D coordinate space, an array of the (texture) data to accompany each vertex, a shader
-        program, and, depending on the rendering mode, an array of indices into the vertex array for the order to tesselate
-        triangles from those vertices.  Some other pipeline steps like rasterization or assembling of primitives are left 
-        out of the purview of the programmer i.e. 'fixed.'</p>
-        <p>This is the model followed by the OpenGL ES standard, based 
-        on OpenGL 2.0, which WebGL implements in javascript ;)  More modern technologies like Vulkan or, 
-        for the web, maybe WebGPU, provide control over all steps of this pipeline but the idea, at 
-        least for the purpose of rendering, is the same.  All of this is to say, our problem is something to do
-        with either the vertices, the texture coordinates, or the order we tesselate the triangles.</p>
+      <div class="sidebar">
+        <a class="pagelink" href="javascript:flipPage('page1.html')">page 1: UV Distortion - 03/25/2025</a>
+        <a class="pagelink" href="javascript:flipPage('page2.html')">page 2: Quadsphere - 03/25/2025</a>
+        <a class="pagelink" href="javascript:flipPage('page3.html')">page 3: Icosphere - 03/25/2025</a>
       </div>
-    </div>
-  </div>
-  <div id="page2" class="page" width="512" height="768">
-    <div class="leftright-columns" width="512">
-      <div class="left-column" width="256">
-        <p>More aptly the problem is concerned with all three.  There are many possible aproaches to
-        assembling the vertices for a sphere in a normalized 3D coordinate space.  For this example I went with
-        the first technique I could think of, perhaps the first you think of as well, the <i>UV-Sphere</i>.
-        Building one essentially entails assembling a list of vertices from the intersections of <i>n</i>
-        latitudinal <i>stacks</i> and <i>m</i> longitudinal <i>slices</i>, and then tesselating quad-faces
-        between every four vertices.  The faces themselves are composed of two triangles sharing two vertices between them.
-        A higher or lower fidelity sphere model is achieved by increasing the number of slices/stacks.</p>
-        <p>One advantage of
-        the UV-sphere is that we can easily texture them from one rectangular bitmap image, by converting a given vertex's
-        3D cartesian coordinates to a spherical coordinate system normalized to the 0,1 range.  These spherical coordinates
-        may be used to sample the rectangular texture to effectively project the 2D texture onto the 3D sphere.  So really
-        the advantage is that, this texture is really easy to deal with.  I think a lot of us would consider having one
-        rectangular texture, linearly sampled, to be an ideal situation from the point of view of making a texture.  There
-        are of course drawbacks, namely that this approach does not result in equal-area quads as
-        you move through different latitudes of the sphere.  <i>UV distortion</i> is the result of squeezing the
-        same-size area from the texture into different-sized areas of the sphere.</p>
-      </div>
-      <div class="right-column" width="256">
-        <p>We can mitigate this issue with techniques like <i>UV unwrapping</i>, which I won't go too far into right now but
-        basically the idea is to distort the texture to account for the inherent distortion from projection on to the sphere,
-        but they have caveats too.  Namely, in the case of UV unwrapping, things get complicated when we start trying to do
-        procedural geometry, like the demos here.  Really what we need is to rethink how we generate the sphere, and texture it,
-        such that we get around this distortion issue.  One idea is to take some basic shape and <i>subdivide</i> it, splitting
-        each face into a tesselation of sub-faces of the same basic shape, for some arbitrary number of subdivisions, and then
-        extending all the resulting vertices to some distance <i>r</i> representing the radius of the sphere.  As we increase the
-        number of subdivisions, the resulting geometry more-closely approximates a sphere of radius <i>r</i>.</p>
-
-        <p>Interestingly, the choice of primitive geometry as a starting point affects the properties of the resulting sphere, at
-        least where UV distortion is concerned.  Particularly the distortion is isolated to different regions.  I've included here
-        two subdivided-sphere demos starting from different underlying geometries.  Notice the different patterns of distortion in
-        each.</p>
-      </div>
-    </div>
-    <div class="center-column" width="512">
-      <label class="spherelabel" for="quadsphereiframe">
-        <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
-          <i>Quadsphere</i>
-        </a>
-      </label>
-      <iframe id="quadsphereiframe" src="quadsphere.html" title="Quadsphere" width="512" height="256" frameBorder="0"></iframe>
-    </div>
-  </div>
-  <div id="page3" class="page" width="512" height="768">
-    <div class="center-column" width="512">
-      <label class="spherelabel" for="icosphereiframe">
-        <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
-          <i>Icosphere</i>
-        </a>
-      </label>
-      <iframe id="icosphereiframe" src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
-    </div>
-    <div class="leftright-columns" width="512">
-      <div class="left-column" width="256">
-        <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
-        landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
-        bunch of little guys holding hands, small world or whatever.</p>
-        <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
-        produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
-        it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
-        good case to make that this one is the most practical.</p>
-        <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
-        way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
-        the thing; your mileage may vary.</p>
-      </div>
-      <div class="right-column" width="256">
-      </div>
-    </div>
-  </div>
-</div>
-</main>
-</body>
+    </main>
+  </body>
 </html>

@@ -19,7 +19,7 @@ function uvEarthCanvas() {
 
   const vertexShaderSource = `
     attribute vec3 position;
-    attribute vec3 normal;
+    //attribute vec3 normal;
 
     uniform mat4 mvp;
     
@@ -233,7 +233,7 @@ function uvEarthCanvas() {
 
   //Get attribute and uniform locations
   const positionAttribLocation = gl.getAttribLocation(shaderProgram, 'position');
-  const normalAttribLocation = gl.getAttribLocation(shaderProgram, 'normal');
+  //const normalAttribLocation = gl.getAttribLocation(shaderProgram, 'normal');
   const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
   const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
   const mvpUniformLocation = gl.getUniformLocation(shaderProgram, 'mvp');
@@ -296,10 +296,10 @@ function uvEarthCanvas() {
     gl.enableVertexAttribArray(positionAttribLocation);
     gl.vertexAttribPointer(positionAttribLocation, 3, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, earthNormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getNormals()), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttribLocation);
-    gl.vertexAttribPointer(normalAttribLocation, 3, gl.FLOAT, false, 0, 0);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, earthNormalBuffer);
+    //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(earth.getNormals()), gl.STATIC_DRAW);
+    //gl.enableVertexAttribArray(normalAttribLocation);
+    //gl.vertexAttribPointer(normalAttribLocation, 3, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, earthIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(earth.getIndices()), gl.STATIC_DRAW);

@@ -19,7 +19,7 @@ function uvSphereCanvas() {
 
   const vertexShaderSource = `
     attribute vec3 position;
-    attribute vec3 normal;
+    //attribute vec3 normal;
 
     uniform mat4 mvp;
     
@@ -233,7 +233,7 @@ function uvSphereCanvas() {
 
   //Get attribute and uniform locations
   const positionAttribLocation = gl.getAttribLocation(shaderProgram, 'position');
-  const normalAttribLocation = gl.getAttribLocation(shaderProgram, 'normal');
+  //const normalAttribLocation = gl.getAttribLocation(shaderProgram, 'normal');
   const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'resolution');
   const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'time');
   const mvpUniformLocation = gl.getUniformLocation(shaderProgram, 'mvp');
@@ -241,7 +241,7 @@ function uvSphereCanvas() {
   //create buffers
   const spherePositionBuffer = gl.createBuffer();
   const sphereIndexBuffer = gl.createBuffer();
-  const sphereNormalBuffer = gl.createBuffer();
+  //const sphereNormalBuffer = gl.createBuffer();
 
   //set resolution uniform
   gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
@@ -293,13 +293,15 @@ function uvSphereCanvas() {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, spherePositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.getVertices()), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionAttribLocation);
-    gl.vertexAttribPointer(positionAttribLocation, 3, gl.FLOAT, false, 0, 0);
+    if (positionAttribLocation != -1) {
+      gl.enableVertexAttribArray(positionAttribLocation);
+      gl.vertexAttribPointer(positionAttribLocation, 3, gl.FLOAT, false, 0, 0);
+    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, sphereNormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.getNormals()), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(normalAttribLocation);
-    gl.vertexAttribPointer(normalAttribLocation, 3, gl.FLOAT, false, 0, 0);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, sphereNormalBuffer);
+    //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.getNormals()), gl.STATIC_DRAW);
+    //gl.enableVertexAttribArray(normalAttribLocation);
+    //gl.vertexAttribPointer(normalAttribLocation, 3, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(sphere.getIndices()), gl.STATIC_DRAW);

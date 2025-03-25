@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV Distortion</title>
+    <style>
+      main {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+      }
+
+      .page {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        font-size: 13px;
+        line-height: 13px;
+        font-family: Times;
+        text-align: left;
+      }
+
+      .left-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .right-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .leftright-columns {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .center-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: center;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .pagebuttons {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+        align-items: end;
+        width: 512px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <div id="page2" class="page" width="512" height="768">
+    <div class="leftright-columns" width="512">
+      <div class="left-column" width="256">
+        <p>More aptly the problem is concerned with all three.  There are many possible aproaches to
+        assembling the vertices for a sphere in a normalized 3D coordinate space.  For this example I went with
+        the first technique I could think of, perhaps the first you think of as well, the <i>UV-Sphere</i>.
+        Building one essentially entails assembling a list of vertices from the intersections of <i>n</i>
+        latitudinal <i>stacks</i> and <i>m</i> longitudinal <i>slices</i>, and then tesselating quad-faces
+        between every four vertices.  The faces themselves are composed of two triangles sharing two vertices between them.
+        A higher or lower fidelity sphere model is achieved by increasing the number of slices/stacks.</p>
+        <p>One advantage of
+        the UV-sphere is that we can easily texture them from one rectangular bitmap image, by converting a given vertex's
+        3D cartesian coordinates to a spherical coordinate system normalized to the 0,1 range.  These spherical coordinates
+        may be used to sample the rectangular texture to effectively project the 2D texture onto the 3D sphere.  So really
+        the advantage is that, this texture is really easy to deal with.  I think a lot of us would consider having one
+        rectangular texture, linearly sampled, to be an ideal situation from the point of view of making a texture.  There
+        are of course drawbacks, namely that this approach does not result in equal-area quads as
+        you move through different latitudes of the sphere.  <i>UV distortion</i> is the result of squeezing the
+        same-size area from the texture into different-sized areas of the sphere.</p>
+      </div>
+      <div class="right-column" width="256">
+        <p>We can mitigate this issue with techniques like <i>UV unwrapping</i>, which I won't go too far into right now but
+        basically the idea is to distort the texture to account for the inherent distortion from projection on to the sphere - 
+        but they have caveats too.  Namely, in the case of UV unwrapping, things get complicated when we start trying to do
+        procedural geometry, like the demos here.  Really what we need is to rethink how we generate the sphere, and texture it,
+        such that we get around this distortion issue.  One idea is to take some basic shape and <i>subdivide</i> it, splitting
+        each face into a tesselation of sub-faces of the same basic shape, for some arbitrary number of subdivisions, and then
+        extending all the resulting vertices to some distance <i>r</i> representing the radius of the sphere.  As we increase the
+        number of subdivisions, the resulting geometry more-closely approximates a sphere of radius <i>r</i>.</p>
+
+        <p>Interestingly, the choice of primitive geometry as a starting point affects the properties of the resulting sphere, at
+        least where UV distortion is concerned.  Particularly the distortion is isolated to different regions.  I've included here
+        two subdivided-sphere demos starting from different underlying geometries.  Notice the different patterns of distortion in
+        each.</p>
+      </div>
+    </div>
+    <label class="spherelabel" for="quadsphereiframe">
+      <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
+        <i>Quadsphere</i>
+      </a>
+    </label>
+    <iframe id="quadsphereiframe" src="quadsphere.html" title="Quadsphere" width="512" height="256" frameBorder="0"></iframe>
+    <script type="text/javascript">
+      function flipPage(pagenum) {
+        parent.document.getElementById('pageiframe').setAttribute("src",pagenum);
+      }
+    </script>
+    <div class="center-column" width="512">
+      <div class="pagebuttons" width="512">
+        <a href="javascript:flipPage('page1.html')">Prev</a>
+        <a href="javascript:flipPage('page3.html')">Next</a>
+      </div>
+    </div>
+  </div>
+</html>

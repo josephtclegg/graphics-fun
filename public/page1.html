@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV Distortion</title>
+    <style>
+      main {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+      }
+
+      .page {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        font-size: 13px;
+        line-height: 13px;
+        font-family: Times;
+        text-align: left;
+      }
+
+      .left-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .right-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .leftright-columns {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .center-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: center;
+        justify-content: start;
+        max-width: 512px;
+        max-height: 768px;
+        text-align: left;
+      }
+
+      .pagecontainer {
+        display: flex;
+        flex-flow: row wrap;
+        max-width: 512px;
+        height: 768px;
+      }
+
+      .pagebuttons {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+        align-items: end;
+        width: 512px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <script type="text/javascript">
+    function flipPage(pagenum) {
+      parent.document.getElementById('pageiframe').setAttribute("src",pagenum);
+    }
+  </script>
+  <div class="pagecontainer">
+    <div id="page1" class="page" width="512" height="768">
+      <div class="left-column" width="512">
+        <h3><u>UV Distortion</u></h3>
+      </div>
+      <label class="spherelabel" for="uvsphereiframe" style="align-self:end;">
+        <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
+          <i>UV-sphere</i>
+        </a>
+      </label>
+      <iframe id="uvsphereiframe" src="uvsphere.html" title="UV-sphere" width="512" height="256" frameBorder="0"></iframe>
+      <div class="leftright-columns" width="512">
+        <div class="left-column" width="256">
+          <p>When I first tried to make an OpenGL globe, I ended up with something like what you see here.
+          No doubt, it has some problems.  Namely the texture is all stretched at the poles: just look at the size
+          of Greenland!</p>
+        </div>
+        <div class="right-column" width="256">
+          <p>It has to do with how we textured the sphere.  In
+          a traditional rendering pipeline, like the one implemented by the WebGL API that we're using
+          to run these demos on <i>your</i> GPU, to render a textured 3D object we need: an array of the object's vertices
+          in a normalized 3D coordinate space, an array of the (texture) data to accompany each vertex, a shader
+          program, and, depending on the rendering mode, an array of indices into the vertex array for the order to tesselate
+          triangles from those vertices.  Some other pipeline steps like rasterization or assembling of primitives are left 
+          out of the purview of the programmer i.e. 'fixed.'</p>
+          <p>This is the model followed by the OpenGL ES standard
+           which WebGL implements in javascript ;)  More modern technologies like Vulkan or, 
+          for the web, maybe WebGPU, provide control over all steps of this pipeline but the idea, at 
+          least for the purpose of rendering, is the same.  Thus our problem is something to do
+          with the vertices, the texture coordinates, or the order we tesselate the triangles.</p>
+        </div>
+      </div>
+      <div class="center-column" width="512">
+        <div class="pagebuttons" width="512">
+          <a href="javascript:flipPage('page1.html')" style="opacity:0.3; pointer-events:none;">Prev</a>
+          <a href="javascript:flipPage('page2.html')">Next</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</html>

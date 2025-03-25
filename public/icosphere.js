@@ -342,14 +342,18 @@ function icoSphereCanvas() {
     //Set sphere positions
     gl.bindBuffer(gl.ARRAY_BUFFER, spherePositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.getVertices()), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(spherePositionAttributeLocation);
-    gl.vertexAttribPointer(spherePositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    if (spherePositionAttributeLocation != -1) {
+      gl.enableVertexAttribArray(spherePositionAttributeLocation);
+      gl.vertexAttribPointer(spherePositionAttributeLocation, 3, gl.FLOAT, false, 0, 0);
+    }
 
     //Set sphere uvs
     gl.bindBuffer(gl.ARRAY_BUFFER, sphereTextureBuffer);
-    gl.enableVertexAttribArray(sphereTexcoordAttributeLocation);
-    gl.vertexAttribPointer(sphereTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(sphere.getUvs()), gl.STATIC_DRAW);
+    if (sphereTexcoordAttributeLocation != -1) {
+      gl.enableVertexAttribArray(sphereTexcoordAttributeLocation);
+      gl.vertexAttribPointer(sphereTexcoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+    }
 
     //Set sphere uniforms
     gl.uniform1f(sphereTimeUniformLocation, performance.now() / 4096);
