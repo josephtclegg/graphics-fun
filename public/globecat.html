@@ -4,14 +4,9 @@
 	<meta charset="UTF-8">
   <title>:3</title>
 	<style>
-	  canvas {
-	    padding-left: 0;
-	    padding-right: 0;
-	    margin-left: auto;
-	    margin-right: auto;
-	    display: block;
-	    width: 256px;
-	    height: 256px;
+	  .globecatcanvas {
+	    width: 200px;
+	    height: 200px;
 	  }
 
     .slidecontainer {
@@ -25,8 +20,9 @@
 	</style>
 </head>
 <body>
+<main>
 <script src="./gl-matrix-min.js"></script>
-<canvas id="canvas" width="256" height="256"></canvas>
+<canvas id="canvas" class="globecatcanvas" width="200" height="200"></canvas>
 <script>
   const mat4 = glMatrix.mat4;
   const vec3 = glMatrix.vec3;
@@ -61,7 +57,7 @@
   	}
   `;
   const earthFragmentShaderSource = `
-  	precision highp float;
+  	precision mediump float;
   	uniform vec2 resolution;
   	uniform float time;
     uniform sampler2D texture;
@@ -566,7 +562,7 @@
   // **********************************************************************************************
 
   function render() {
-    mat4.perspective(earth_projection, PI/4, 1.0, 0, Number.POSITIVE_INFINITY);
+    mat4.perspective(earth_projection, PI/3, 1.0, 0, Number.POSITIVE_INFINITY);
     mat4.perspective(sc_projection, PI/1.5, 1.0, 0, 1);
   
     if (earthImageLoaded) {
@@ -670,5 +666,6 @@
   
   render();
 </script>
+</main>
 </body>
 </html>
