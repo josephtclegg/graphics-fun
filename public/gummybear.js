@@ -66,7 +66,7 @@ async function gummyBearCanvas() {
       vec3 halfvector = normalize(surfacetolight+surfacetocamera);
 
       float ambient = 0.2;
-      float light = max(dot(normal, surfacetolight), ambient);
+      float light = max(dot(normal, normalize(v_surfacetolight)), ambient);
       float specular = 1.0;
       if (light > 0.0) {
         specular = pow(dot(normal, halfvector), shininess);
@@ -80,7 +80,6 @@ async function gummyBearCanvas() {
       //specular is same color as underlying
       specularcolor = gl_FragColor.rgb;
       gl_FragColor.rgb += specular*specularcolor;
-      gl_FragColor += ambient*texture2D(texture, new_uv);
   	}
   `;
 
