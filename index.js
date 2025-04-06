@@ -17,6 +17,10 @@ app.get("/globecat", (req, res) => {
   res.sendFile(path.join(__dirname, '/', 'globecat.html'));
 });
 
+app.get("/gummybear", (req, res) => {
+  res.sendFile(path.join(__dirname, '/', 'gummybear.html'));
+});
+
 app.use(express.static(__dirname + '/public/'));
 
 http.createServer(app).listen(8080);

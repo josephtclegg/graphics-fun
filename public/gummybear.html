@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV-sphere demo</title>
+<style>
+.spherecanvas {
+    width: 250px;
+    height: 250px;
+}
+
+.twocanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 512px;
+}
+
+.slidercontainer {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+}
+
+#icospherelabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.sphereslider {
+  opacity: 0.2;
+}
+</style>
+  </head>
+  <body>
+  <main>
+    <div class="twocanvas" width="512">
+      <canvas id="icospherecanvas" class="spherecanvas" width="250" height="250"></canvas>
+      <canvas id="icoearthcanvas" class="spherecanvas" width="250" height="250"></canvas>
+    </div>
+    <label id="icospherelabel" for="icospherecanvas">
+      <div class="slidercontainer">
+        <input type="range" orient="vertical" id="icospheresubdivisions" class="sphereslider" name="icospheresubdivisions" min="0" max="3">
+      </div>
+    </label>
+    <script src="./gl-matrix-min.js"></script>
+    <script src="./icosphere.js"></script>
+    <script src="./icoearth.js"></script>
+  </main>
+  </body>
+</html>
