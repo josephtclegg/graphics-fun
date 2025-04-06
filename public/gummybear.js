@@ -65,20 +65,22 @@ async function gummyBearCanvas() {
       vec3 surfacetocamera = normalize(v_surfacetocamera);
       vec3 halfvector = normalize(surfacetolight+surfacetocamera);
 
-      float ambient = 0.9;
-      float light = dot(normal, normalize(v_surfacetolight));
+      float ambient = 0.2;
+      float light = max(dot(normal, surfacetolight), ambient);
       float specular = 1.0;
       if (light > 0.0) {
         specular = pow(dot(normal, halfvector), shininess);
       }
 
       light *= 1.9;
-  	  gl_FragColor = vec4(texture2D(texture, new_uv).rgb, 0.9);
-      gl_FragColor.rgb *= min(light*lightcolor, 1.+ambient);
+      lightcolor = texture2D(texture, new_uv).rgb;
+  	  gl_FragColor = vec4(lightcolor, 0.65);
+      gl_FragColor.rgb *= light*lightcolor;
 
       //specular is same color as underlying
       specularcolor = gl_FragColor.rgb;
       gl_FragColor.rgb += specular*specularcolor;
+      gl_FragColor += ambient*texture2D(texture, new_uv);
   	}
   `;
 
