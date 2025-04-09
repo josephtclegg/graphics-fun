@@ -37,7 +37,7 @@ async function gummyBearCanvas() {
       vec3 halfvector = normalize(surfacetolight+surfacetocamera);
 
       float light = max(dot(t_normal, surfacetolight), ambient);
-      float specular = 1.0;
+      float specular = 0.5;
       if (light > 0.0) {
         specular = pow(dot(t_normal, halfvector), shininess);
       }
@@ -49,7 +49,7 @@ async function gummyBearCanvas() {
   	}
   `;
   const gummyBearFragmentShaderSource = `
-  	precision mediump float;
+  	precision highp float;
 
   	uniform vec2 resolution;
   	uniform float time;
