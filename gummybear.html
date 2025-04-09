@@ -16,9 +16,9 @@
   width: 250px;
 }
 
-.slidercontainer {
+.switchcontainer {
   display: flex;
-  flex-flow: column nowrap;
+  flex-flow: row nowrap;
   justify-content: start;
   align-items: start;
 }
@@ -27,6 +27,10 @@
   position: absolute;
   top: 0;
   left: 0;
+}
+
+#phongswitchlabel {
+  font-size: 8pt;
 }
 
 .sphereslider {
@@ -40,8 +44,11 @@
       <canvas id="gummybearcanvas" class="spherecanvas" width="250" height="250"></canvas>
     </div>
     <label id="icospherelabel" for="icospherecanvas">
-      <div class="slidercontainer">
-        <input type="range" orient="vertical" id="icospheresubdivisions" class="sphereslider" name="icospheresubdivisions" min="0" max="3">
+      <div class="switchcontainer">
+        <input id="phongswitch" type="checkbox">
+        <label id="phongswitchlabel" for="phongswitch">
+          phong
+        </label>
       </div>
     </label>
     <script src="./gl-matrix-min.js"></script>

@@ -74,28 +74,27 @@
       }
     </style>
   </head>
-  <div id="page3" class="page" width="512" height="768">
-    <label class="spherelabel" for="icosphereiframe">
-      <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
-        <i>Icosphere</i>
-      </a>
-    </label>
-    <iframe id="icosphereiframe" src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
+  <div id="page4" class="page" width="512" height="768">
     <div class="leftright-columns" width="512">
       <div class="left-column" width="256">
-        <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
-        landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
-        bunch of little guys holding hands, small world or whatever.</p>
-        <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
-        produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
-        it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
-        good case to make that this one is the most practical.</p>
-        <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
-        way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
-        the thing; your mileage may vary.</p>
+        <iframe id="gummybearphongiframe" src="gummybear.html" title="Phong vs Flat" width="256" height="256" frameBorder="0"></iframe>
+        <p>
+          The phong approach, which results in this nice smooth gummy appearance, just entails taking all of those duplicate
+          normals and averaging them into one, to be used at all instances of that vertex on all faces that it appears in.
+          This way our lighting calculations result in nice smooth shadows rather than many harsh facets.  Thanks Phong!
+        </p>
       </div>
       <div class="right-column" width="256">
-        <iframe id="globecatiframe" src="globecat.html" title="Globecat" width="256" height="256" frameBorder="0"></iframe>
+        <p>
+          Here's a little demo showing the difference between flat-shading vs phong-shading in realtime, on a gummybear.
+          To build this I had to write a parser for .obj models, which turns out to be a bit of a fool's errand if you
+          know anything about the .obj format: it's sparsely documented and has a bunch of nebulous features that may
+          or may not be present in a given model.  Fortunately for my sake this gummybear which I made in blender exported
+          to a relatively simple .obj so I just wrote a parser for what was in the file.  The idea with phong is basically
+          that, our model comes such that each triangular face has three normal vectors, one at each vertex.  When you have
+          a surface/volume like this comprised of a bunch of triangles tiled together, however, you can see that some
+          vertices have different normals for different faces that they are a part of.
+        </p>
       </div>
     </div>
     <script type="text/javascript">
@@ -105,8 +104,8 @@
     </script>
     <div class="center-column" width="512">
       <div class="pagebuttons" width="512">
-        <a href="javascript:flipPage('page2.html')">Prev</a>
-        <a href="javascript:flipPage('page4.html')">Next</a>
+        <a href="javascript:flipPage('page3.html')">Prev</a>
+        <a href="javascript:flipPage('page5.html')" style="opacity:0.3; pointer-events:none;">Next</a>
       </div>
     </div>
   </div>

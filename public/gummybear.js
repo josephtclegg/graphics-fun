@@ -21,19 +21,30 @@ async function gummyBearCanvas() {
   	uniform mat4 mvp;
     uniform mat4 mit;
 
+    uniform float shininess;
     uniform vec3 lightpos;
     uniform vec3 camerapos;
+    uniform float ambient;
 
     varying vec2 uv;
-    varying vec3 v_normal;
-    varying vec3 v_surfacetolight;
-    varying vec3 v_surfacetocamera;
+    varying float v_diffuse;
+    varying float v_specular;
   
   	void main() {
-      v_normal = mat3(mit)*normal;
-      v_surfacetolight = lightpos-position;
-      v_surfacetocamera = camerapos-position;
+      vec3 t_normal = normalize(mat3(mit)*normal);
+      vec3 surfacetolight = normalize(lightpos-position);
+      vec3 surfacetocamera = normalize(camerapos-position);
+      vec3 halfvector = normalize(surfacetolight+surfacetocamera);
+
+      float light = max(dot(t_normal, surfacetolight), ambient);
+      float specular = 1.0;
+      if (light > 0.0) {
+        specular = pow(dot(t_normal, halfvector), shininess);
+      }
+
       uv = texcoord;
+      v_diffuse = light;
+      v_specular = specular;
   	  gl_Position = mvp * vec4(position, 1.0);
   	}
   `;
@@ -45,48 +56,27 @@ async function gummyBearCanvas() {
     uniform sampler2D texture;
 
   	varying vec2 uv;
-  	varying vec3 v_normal;
-  	varying vec3 v_surfacetolight;
-  	varying vec3 v_surfacetocamera;
+  	varying float v_diffuse;
+  	varying float v_specular;
 
-    uniform float shininess;
-    //uniform float lightcolor;
-    //uniform float specularcolor;
-  
   	void main() {
-      vec3 lightcolor = vec3(1.0, 1.0, 1.0);
-      vec3 specularcolor = vec3(1.0, 1.0, 1.0);
-
       vec2 new_uv = uv;
       new_uv.y = 1.0 - new_uv.y;
 
-      vec3 normal = normalize(v_normal);
-      vec3 surfacetolight = normalize(v_surfacetolight);
-      vec3 surfacetocamera = normalize(v_surfacetocamera);
-      vec3 halfvector = normalize(surfacetolight+surfacetocamera);
-
-      float ambient = 0.2;
-      float light = max(dot(normal, normalize(v_surfacetolight)), ambient);
-      float specular = 1.0;
-      if (light > 0.0) {
-        specular = pow(dot(normal, halfvector), shininess);
-      }
-
-      light *= 1.9;
-      lightcolor = texture2D(texture, new_uv).rgb;
+      vec3 lightcolor = texture2D(texture, new_uv).rgb;
   	  gl_FragColor = vec4(lightcolor, 0.65);
-      gl_FragColor.rgb *= light*lightcolor;
+      gl_FragColor.rgb *= v_diffuse*lightcolor;
 
       //specular is same color as underlying
-      specularcolor = gl_FragColor.rgb;
-      gl_FragColor.rgb += specular*specularcolor;
+      vec3 specularcolor = gl_FragColor.rgb;
+      gl_FragColor.rgb += v_specular*specularcolor;
   	}
   `;
 
   const RESPONSE = await fetch("./gummybear.obj");
   const RAWDATA = await RESPONSE.text();
 
-  function createGummyBear(data) {
+  function createGummyBear(data, wantPhong) {
     const lines = data.split("\n");
 
     const parsePositions = function(data) {
@@ -161,17 +151,69 @@ async function gummyBearCanvas() {
       let triangle_positions = [];
       let triangle_uvs = [];
       let triangle_normals = [];
+      let normal_dict = {};
 
-      for (const line of i_lines) {
-        triangle_positions.push(line.split(" ")[0].split("/")[0]);
-        triangle_uvs.push(line.split(" ")[0].split("/")[1]);
-        triangle_normals.push(line.split(" ")[0].split("/")[2]);
-        triangle_positions.push(line.split(" ")[1].split("/")[0]);
-        triangle_uvs.push(line.split(" ")[1].split("/")[1]);
-        triangle_normals.push(line.split(" ")[1].split("/")[2]);
-        triangle_positions.push(line.split(" ")[2].split("/")[0]);
-        triangle_uvs.push(line.split(" ")[2].split("/")[1]);
-        triangle_normals.push(line.split(" ")[2].split("/")[2]);
+      // This is where we do our Phong magic!  Build a dictionary of (position) -> [all the normal vectors] associated with
+      // that position.  Then when we make our normal buffer object, we do so by averaging all the normals for a given
+      // position in to one, and substituting that average normal for all instances of that position.  Super easy!
+      if (wantPhong) {
+        for (const line of i_lines) {
+          //Note that this block is going a-triangle-at-a-time, hence 3 of everything
+          let pos1 = line.split(" ")[0].split("/")[0];
+          let uv1 = line.split(" ")[0].split("/")[1];
+          let normal1 = line.split(" ")[0].split("/")[2];
+          triangle_positions.push(pos1);
+          triangle_uvs.push(uv1);
+          if (normal_dict[pos1] === undefined) {
+            normal_dict[pos1] = [normal1];
+          } else if (!(normal_dict[pos1].includes(normal1))) {
+            normal_dict[pos1].push(normal1);
+          }
+          let pos2 = line.split(" ")[1].split("/")[0];
+          let uv2 = line.split(" ")[1].split("/")[1];
+          let normal2 = line.split(" ")[1].split("/")[2];
+          triangle_positions.push(pos2);
+          triangle_uvs.push(uv2);
+          if (normal_dict[pos2] === undefined) {
+            normal_dict[pos2] = [normal2];
+          } else if (!(normal_dict[pos2].includes(normal2))) {
+            normal_dict[pos2].push(normal2);
+          }
+          let pos3 = line.split(" ")[2].split("/")[0];
+          let uv3 = line.split(" ")[2].split("/")[1];
+          let normal3 = line.split(" ")[2].split("/")[2];
+          triangle_positions.push(pos3);
+          triangle_uvs.push(uv3);
+          if (normal_dict[pos3] === undefined) {
+            normal_dict[pos3] = [normal3];
+          } else if (!(normal_dict[pos3].includes(normal3))) {
+            normal_dict[pos3].push(normal3);
+          }
+        }
+
+        const averageNormal = function(normals) {
+          let sum = 0;
+          for (const normal of normals) {
+            sum += normal;
+          }
+          return sum/normals.length;
+        }
+
+        for (const position of triangle_positions) {
+          triangle_normals.push(normal_dict[position]);
+        }
+      } else {
+        for (const line of i_lines) {
+          triangle_positions.push(line.split(" ")[0].split("/")[0]);
+          triangle_uvs.push(line.split(" ")[0].split("/")[1]);
+          triangle_normals.push(line.split(" ")[0].split("/")[2]);
+          triangle_positions.push(line.split(" ")[1].split("/")[0]);
+          triangle_uvs.push(line.split(" ")[1].split("/")[1]);
+          triangle_normals.push(line.split(" ")[1].split("/")[2]);
+          triangle_positions.push(line.split(" ")[2].split("/")[0]);
+          triangle_uvs.push(line.split(" ")[2].split("/")[1]);
+          triangle_normals.push(line.split(" ")[2].split("/")[2]);
+        }
       }
 
       return {
@@ -190,7 +232,27 @@ async function gummyBearCanvas() {
     const normal_indices = indices.normal_indices;
     const position_data = position_indices.flatMap((n) => [positions[3*(n-1)], positions[(3*(n-1))+1], positions[(3*(n-1))+2]]);
     const uv_data = uv_indices.flatMap((n) => [uvs[2*(n-1)], uvs[(2*(n-1))+1]]);
-    const normal_data = normal_indices.flatMap((n) => [normals[3*(n-1)], normals[(3*(n-1))+1], normals[(3*(n-1))+2]]);
+
+    let normal_data = [];
+    if (wantPhong) {
+      for (const list_of_normals of normal_indices) {
+        const shared_normals = list_of_normals.flatMap((n) => ({x: parseFloat(normals[3*(n-1)]), y: parseFloat(normals[(3*(n-1))+1]), z: parseFloat(normals[(3*(n-1))+2])}));
+        let x_sum = 0.0;
+        let y_sum = 0.0;
+        let z_sum = 0.0;
+        for (const normal of shared_normals) {
+          x_sum += normal.x;
+          y_sum += normal.y;
+          z_sum += normal.z;
+        }
+        normal_data.push(x_sum/shared_normals.length);
+        normal_data.push(y_sum/shared_normals.length);
+        normal_data.push(z_sum/shared_normals.length);
+      }
+    } else {
+      normal_data = normal_indices.flatMap((n) => [normals[3*(n-1)], normals[(3*(n-1))+1], normals[(3*(n-1))+2]]);
+    }
+
 
     const gummybear = {
       getPositionData() {
@@ -212,7 +274,7 @@ async function gummyBearCanvas() {
  
   const date = new Date();
   const canvas = document.getElementById('gummybearcanvas');
-  const gl = canvas.getContext('webgl');
+  const gl = canvas.getContext('webgl', { alpha: true});
   
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.BLEND);
@@ -225,8 +287,6 @@ async function gummyBearCanvas() {
   const gummyBear_mvp = mat4.create();
   const gummyBear_mit = mat4.create();
   const gummyBear_minv = mat4.create();
-
-  /*************************************** EARTH ***************************************/
 
   //Create vertex shader
   const gummyBearVertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -258,6 +318,7 @@ async function gummyBearCanvas() {
   //const gummyBearSpecularcolorUniformLocation = gl.getUniformLocation(gummyBearShaderProgram, 'specularcolor');
   const gummyBearLightposUniformLocation = gl.getUniformLocation(gummyBearShaderProgram, 'lightpos');
   const gummyBearCameraposUniformLocation = gl.getUniformLocation(gummyBearShaderProgram, 'camerapos');
+  const gummyBearAmbientUniformLocation = gl.getUniformLocation(gummyBearShaderProgram, 'ambient');
   
   //Create buffes
   const gummyBearPositionBuffer = gl.createBuffer();
@@ -298,9 +359,10 @@ async function gummyBearCanvas() {
   // **********************************************************************************************
   // RENDER LOOP
   // **********************************************************************************************
-  let gummyBear = createGummyBear(RAWDATA);
 
   function render() {
+    let phongEnabled = document.getElementById('phongswitch').checked;
+    let gummyBear = createGummyBear(RAWDATA, phongEnabled);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0, 0, 0, 0.01);
 
@@ -339,6 +401,7 @@ async function gummyBearCanvas() {
     //Set gummyBear uniforms
     gl.uniform1f(gummyBearTimeUniformLocation, performance.now() / 4096);
     gl.uniform1f(gummyBearShininessUniformLocation, 0.8);
+    gl.uniform1f(gummyBearAmbientUniformLocation, 0.2);
     gl.uniform3fv(gummyBearLightposUniformLocation, new Float32Array(GUMMYBEAR_LIGHT_POS));
     gl.uniform3fv(gummyBearCameraposUniformLocation, new Float32Array(GUMMYBEAR_CAMERA_POS));
     //gl.uniform3fv(gummyBearLightcolorUniformLocation, new Float32Array([1.0, 1.0, 1.0]));
