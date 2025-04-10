@@ -7,7 +7,7 @@ async function gummyBearCanvas() {
   const UP = {x: 0.0, y: 1.0, z: 0.0};
   const CAMERA_POS = [0.0, 0.0, -5.0];
   const GUMMYBEAR_CAMERA_POS = CAMERA_POS;
-  const GUMMYBEAR_LIGHT_POS = [-100.0, 100.0, -2.0];
+  const GUMMYBEAR_LIGHT_POS = [-15.0, 15.0, -15.0];
 
   const isPowerOf2 = function(n) {
     return (n > 0 && (n & (n - 1)) === 0);
@@ -18,33 +18,17 @@ async function gummyBearCanvas() {
     attribute vec2 texcoord;
   	attribute vec3 normal;
 
-  	uniform mat4 mvp;
     uniform mat4 mit;
+  	uniform mat4 mvp;
 
-    uniform float shininess;
-    uniform vec3 lightpos;
-    uniform vec3 camerapos;
-    uniform float ambient;
-
+    varying vec3 v_normal;
+    varying vec3 v_position;
     varying vec2 uv;
-    varying float v_diffuse;
-    varying float v_specular;
   
   	void main() {
-      vec3 t_normal = normalize(mat3(mit)*normal);
-      vec3 surfacetolight = normalize(lightpos-position);
-      vec3 surfacetocamera = normalize(camerapos-position);
-      vec3 halfvector = normalize(surfacetolight+surfacetocamera);
-
-      float light = max(dot(t_normal, surfacetolight), ambient);
-      float specular = 0.5;
-      if (light > 0.0) {
-        specular = pow(dot(t_normal, halfvector), shininess);
-      }
-
+      v_normal = normalize((mit*vec4(normal, 0.0)).xyz);
+      v_position = position;
       uv = texcoord;
-      v_diffuse = light;
-      v_specular = specular;
   	  gl_Position = mvp * vec4(position, 1.0);
   	}
   `;
@@ -54,22 +38,34 @@ async function gummyBearCanvas() {
   	uniform vec2 resolution;
   	uniform float time;
     uniform sampler2D texture;
+    uniform float shininess;
+    uniform vec3 lightpos;
+    uniform vec3 camerapos;
+    uniform float ambient;
 
+    varying vec3 v_normal;
+    varying vec3 v_position;
   	varying vec2 uv;
-  	varying float v_diffuse;
-  	varying float v_specular;
 
   	void main() {
       vec2 new_uv = uv;
       new_uv.y = 1.0 - new_uv.y;
 
-      vec3 lightcolor = texture2D(texture, new_uv).rgb;
-  	  gl_FragColor = vec4(lightcolor, 0.65);
-      gl_FragColor.rgb *= v_diffuse*lightcolor;
+      vec3 surfacetolight = normalize(lightpos-v_position);
+      vec3 surfacetocamera = normalize(camerapos-v_position);
+      vec3 halfvector = normalize(surfacetolight+surfacetocamera);
 
-      //specular is same color as underlying
-      vec3 specularcolor = gl_FragColor.rgb;
-      gl_FragColor.rgb += v_specular*specularcolor;
+      float diffuse = dot(v_normal, surfacetolight);
+      float specular = 0.2;
+      if (diffuse > 0.4) {
+        specular = pow(dot(v_normal, halfvector), shininess);
+      }
+
+      vec3 texcolor = texture2D(texture, new_uv).rgb;
+      vec3 ambientComponent = texcolor*ambient;
+      vec3 diffuseComponent = texcolor*diffuse;
+      vec3 specularComponent = texcolor*specular;
+      gl_FragColor = vec4(min(ambientComponent + diffuseComponent + specularComponent, vec3(1.0)), 0.65);
   	}
   `;
 
@@ -400,8 +396,8 @@ async function gummyBearCanvas() {
 
     //Set gummyBear uniforms
     gl.uniform1f(gummyBearTimeUniformLocation, performance.now() / 4096);
-    gl.uniform1f(gummyBearShininessUniformLocation, 0.8);
-    gl.uniform1f(gummyBearAmbientUniformLocation, 0.2);
+    gl.uniform1f(gummyBearShininessUniformLocation, 0.0);
+    gl.uniform1f(gummyBearAmbientUniformLocation, 0.7);
     gl.uniform3fv(gummyBearLightposUniformLocation, new Float32Array(GUMMYBEAR_LIGHT_POS));
     gl.uniform3fv(gummyBearCameraposUniformLocation, new Float32Array(GUMMYBEAR_CAMERA_POS));
     //gl.uniform3fv(gummyBearLightcolorUniformLocation, new Float32Array([1.0, 1.0, 1.0]));
