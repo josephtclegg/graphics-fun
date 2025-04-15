@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>goop demo</title>
+<style>
+.spherecanvas {
+    width: 500px;
+    height: 500px;
+}
+
+.singlecanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 250px;
+}
+</style>
+  </head>
+  <body>
+  <main>
+    <div class="singlecanvas" width="250">
+      <canvas id="goopcanvas" class="spherecanvas" width="500" height="500"></canvas>
+    </div>
+    <script src="./gl-matrix-min.js"></script>
+    <script src="./goop.js"></script>
+  </main>
+  </body>
+</html>
