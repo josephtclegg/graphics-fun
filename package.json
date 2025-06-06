@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/josephtclegg/graphics-fun#readme",
   "dependencies": {
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "gl-matrix": "^3.4.3"
   }
 }

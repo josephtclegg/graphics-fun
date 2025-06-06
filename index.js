@@ -22,6 +22,7 @@ app.get("/gummybear", (req, res) => {
 });
 
 app.use(express.static(__dirname + '/public/'));
+app.use('/gl-matrix', express.static('node_modules/gl-matrix'));
 
 http.createServer(app).listen(8080);
 //https.createServer(options, app).listen(3000);
