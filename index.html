@@ -12,11 +12,18 @@
         justify-content: start;
       }
 
-      .pageandbanner {
+      .allpages {
         display: flex;
-        flex-flow: column nowrap;
+        flex-flow: column wrap;
         align-items: start;
         justify-content: start;
+        max-width: 1024px;
+      }
+
+      @media (min-width: 769px) {
+        .allpages {
+          flex-direction: row;
+        }
       }
 
       #bannercanvas {
@@ -34,11 +41,6 @@
         height: 16px;
       }
 
-      .pagecontainer {
-        width: 520px;
-        height: 785px;
-      }
-
       .canvas-label {
         display: flex;
         flex-flow: column nowrap;
@@ -46,7 +48,7 @@
         font-size: 11px;
       }
 
-      .spherelabel {
+      .demolabel {
         align-self: end;
       }
 
@@ -61,21 +63,202 @@
       .pagelink {
         min-height: 20px;
       }
-	  </style>
+
+      .page {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        font-size: 13px;
+        line-height: 13px;
+        font-family: Times;
+        text-align: left;
+      }
+
+      .left-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        text-align: left;
+      }
+
+      .right-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: start;
+        justify-content: start;
+        width: 256px;
+        text-align: left;
+      }
+
+      .leftright-columns {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: start;
+        justify-content: start;
+        max-width: 512px;
+        text-align: left;
+      }
+
+      .center-column {
+        display: flex;
+        flex-flow: column nowrap;
+        align-items: center;
+        justify-content: start;
+        max-width: 512px;
+        text-align: left;
+      }
+
+      .pagecontainer {
+        display: flex;
+        flex-flow: row wrap;
+        max-width: 512px;
+      }
+    </style>
   </head>
-  <script type="text/javascript">
-    function flipPage(pagenum) {
-      document.getElementById('pageiframe').setAttribute("src",pagenum);
-    }
-  </script>
   <body>
     <main>
-      <div class="pageandbanner">
-        <script src="/gl-matrix/gl-matrix-min.js"></script>
-        <canvas id="bannercanvas" tabindex="1" width="512" height="256"></canvas>
-        <input type="color" id="colorinput" width="16" height="16"/>
-        <script src="./banner.js"></script>
-        <iframe id="pageiframe" class="pagecontainer" src="page1.html" title="UV-sphere" width="520" height="780" frameBorder="0"></iframe>
+      <div class="allpages">
+        <div class="pagecontainer">
+          <canvas id="bannercanvas" tabindex="1" width="512" height="256"></canvas>
+          <input type="color" id="colorinput" width="16" height="16"/>
+          <script src="./banner.js"></script>
+          <div id="page1" class="page" width="512">
+            <div class="left-column" width="512">
+              <h3><u>UV Distortion</u></h3>
+            </div>
+            <label class="demolabel" for="uvsphereiframe" style="align-self:end;">
+              <a href="https://en.wikipedia.org/wiki/UV_mapping#Finding_UV_on_a_sphere">
+                <i>UV-sphere</i>
+              </a>
+            </label>
+            <iframe id="uvsphereiframe" data-src="uvsphere.html" title="UV-sphere" width="512" height="256" frameBorder="0"></iframe>
+            <div class="leftright-columns" width="512">
+              <div class="left-column" width="256">
+                <p>When I first tried to make an OpenGL globe, I ended up with something like what you see here.
+                No doubt, it has some problems.  Namely the texture is all stretched at the poles: just look at the size
+                of Greenland!</p>
+                <img src="renderingpipeline.png" alt="The rendering pipeline." width="256" height="256">
+              </div>
+              <div class="right-column" width="256">
+                <p>It has to do with how we textured the sphere.  In
+                a traditional rendering pipeline, like the one implemented by the WebGL API that we're using
+                to run these demos on <i>your</i> GPU, to render a textured 3D object we need: an array of the object's vertices
+                in a normalized 3D coordinate space, an array of the (texture) data to accompany each vertex, a shader
+                program, and, depending on the rendering mode, an array of indices into the vertex array for the order to tesselate
+                triangles from those vertices.  Some other pipeline steps like rasterization or assembling of primitives are left 
+                out of the purview of the programmer i.e. 'fixed.'</p>
+                <p>This is the model followed by the OpenGL ES standard
+                 which WebGL implements in javascript ;)  More modern technologies like Vulkan or, 
+                for the web, maybe WebGPU, provide control over all steps of this pipeline but the idea, at 
+                least for the purpose of rendering, is the same.  Thus our problem is something to do
+                with the vertices, the texture coordinates, or the order we tesselate the triangles.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pagecontainer">
+          <div id="page2" class="page" width="512">
+            <div class="leftright-columns" width="512">
+              <div class="left-column" width="256">
+                <p>More aptly the problem is concerned with all three.  There are many possible aproaches to
+                assembling the vertices for a sphere in a normalized 3D coordinate space.  For this example I went with
+                the first technique I could think of, perhaps the first you think of as well, the <i>UV-Sphere</i>.
+                Building one essentially entails assembling a list of vertices from the intersections of <i>n</i>
+                latitudinal <i>stacks</i> and <i>m</i> longitudinal <i>slices</i>, and then tesselating quad-faces
+                between every four vertices.  The faces themselves are composed of two triangles sharing two vertices between them.
+                A higher or lower fidelity sphere model is achieved by increasing the number of slices/stacks.</p>
+                <p>One advantage of
+                the UV-sphere is that we can easily texture them from one rectangular bitmap image, by converting a given vertex's
+                3D cartesian coordinates to a spherical coordinate system normalized to the 0,1 range.  These spherical coordinates
+                may be used to sample the rectangular texture to effectively project the 2D texture onto the 3D sphere.  So really
+                the advantage is that, this texture is really easy to deal with, being a 
+                rectangular texture, linearly sampled.  There
+                are of course drawbacks, namely that this approach does not result in equal-area quads as
+                you move through different latitudes of the sphere.  <i>UV distortion</i> is the result of squeezing the
+                same-size area from the texture into different-sized areas of the sphere.</p>
+              </div>
+              <div class="right-column" width="256">
+                <p>We can mitigate this issue with techniques like <i>UV unwrapping</i>, which I won't go too far into right now but
+                basically the idea is to distort the texture to account for the inherent distortion from projection on to the sphere - 
+                but they have caveats too.  Namely, in the case of UV unwrapping, things get complicated when we start trying to do
+                procedural geometry, like the demos here.  Really what we need is to rethink how we generate the sphere, and texture it,
+                such that we get around this distortion issue.  One idea is to take some basic shape and <i>subdivide</i> it, splitting
+                each face into a tesselation of sub-faces of the same basic shape, for some arbitrary number of subdivisions, and then
+                extending all the resulting vertices to some distance <i>r</i> representing the radius of the sphere.  As we increase the
+                number of subdivisions, the resulting geometry more-closely approximates a sphere of radius <i>r</i>.</p>
+
+                <p>Interestingly, the choice of primitive geometry as a starting point affects the properties of the resulting sphere, at
+                least where UV distortion is concerned.  Particularly the distortion is isolated to different regions.  I've included here
+                two subdivided-sphere demos starting from different underlying geometries.  Notice the different patterns of distortion in
+                each.</p>
+              </div>
+            </div>
+            <label class="demolabel" for="quadsphereiframe">
+              <a href="https://en.wikipedia.org/wiki/Quadrilateralized_spherical_cube">
+                <i>Quadsphere</i>
+              </a>
+            </label>
+            <iframe id="quadsphereiframe" data-src="quadsphere.html" title="Quadsphere" width="512" height="256" frameBorder="0"></iframe>
+          </div>
+        </div>
+        <div class="pagecontainer">
+          <div id="page3" class="page" width="512">
+            <label class="demolabel" for="icosphereiframe">
+              <a href="https://en.wikipedia.org/wiki/Geodesic_polyhedron">
+                <i>Icosphere</i>
+              </a>
+            </label>
+            <iframe id="icosphereiframe" data-src="icosphere.html" title="Icosphere" width="512" height="256" frameBorder="0"></iframe>
+            <div class="leftright-columns" width="512">
+              <div class="left-column" width="256">
+                <p>Overall I have to say I love each of them in their own way :)  The UV-sphere's dreamy fisheye distortion of the global
+                landmass such that it all but crowds out the oceans is perfect for like, some kind of cute advertisement or clipart with a
+                bunch of little guys holding hands, small world or whatever.</p>
+                <p>The quadsphere is definitely my favorite toy.  I love the grid-textured version and the distortion pattern
+                produced, and the cube earth.  I also want to mention that this one, unlike the icosphere, gave me <i>no issues</i> with texturing,
+                it's honestly easier to work with in that regard than the UV-sphere, because I didn't have any issues with seams.  I think there's a
+                good case to make that this one is the most practical.</p>
+                <p>The icosphere, on the other hand, finally gets us a globe with minimal distortion.  The land masses here look really good,
+                way more accurate than the others, at the expense of some stubborn seams and a significant amount of difficulty orienting and texturing
+                the thing; your mileage may vary.</p>
+              </div>
+              <div class="right-column" width="256">
+                <iframe id="globecatiframe" data-src="globecat.html" title="Globecat" width="256" height="256" frameBorder="0"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pagecontainer">
+          <div id="page4" class="page" width="512">
+            <div class="leftright-columns" width="512">
+              <div class="left-column" width="256">
+                <iframe id="gummybearphongiframe" data-src="gummybear.html" title="Phong vs Flat" width="256" height="256" frameBorder="0"></iframe>
+                <p>
+                  The phong approach, which results in this nice smooth gummy appearance, just entails taking all of those duplicate
+                  normals and averaging them into one, to be used at all instances of that vertex on all faces that it appears in.
+                  This way our lighting calculations result in nice smooth shadows rather than many harsh facets.  Thanks Phong!
+                </p>
+              </div>
+              <div class="right-column" width="256">
+                <p>
+                  Here's a little demo showing the difference between flat-shading vs phong-shading in realtime, on a gummybear.
+                  To build this I had to write a parser for .obj models, which turns out to be a bit of a fool's errand if you
+                  know anything about the .obj format: it's sparsely documented and has a bunch of nebulous features that may
+                  or may not be present in a given model.  Fortunately for my sake this gummybear which I made in blender exported
+                  to a relatively simple .obj so I just wrote a parser for what was in the file.  The idea with phong is basically
+                  that, our model comes such that each triangular face has three normal vectors, one at each vertex.  When you have
+                  a surface/volume like this comprised of a bunch of triangles tiled together, however, you can see that some
+                  vertices have different normals for different faces that they are a part of.
+                </p>
+              </div>
+            </div>
+          </div>
+        </html>
+        </div>
       </div>
       <div class="sidebar">
         <a class="pagelink" href="javascript:flipPage('page1.html')">page 1: UV Distortion - 03/25/2025</a>
@@ -84,5 +267,35 @@
         <a class="pagelink" href="javascript:flipPage('page4.html')">page 4: Phong vs Flat Gummybear - 04/09/2025</a>
       </div>
     </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const iframes = document.querySelectorAll("iframe[data-src]");
+
+        const observer = new IntersectionObserver((entries, obs) => {
+          entries.forEach(entry => {
+            const iframe = entry.target;
+            if (entry.isIntersecting) {
+              if (iframe.src != iframe.dataset.src) {
+                console.log("loading");
+                console.log(iframe.dataset.src);
+                iframe.src = iframe.dataset.src;
+              }
+            } else {
+              if (iframe.src) {
+                console.log("unloading");
+                console.log(iframe.src);
+                iframe.src = "about:blank";
+              }
+            }
+          });
+        }, {
+          root: null,
+          rootMargin: "0px",
+          threshold: 0.1
+        });
+
+        iframes.forEach(iframe => {observer.observe(iframe)});
+      });
+    </script>
   </body>
 </html>
