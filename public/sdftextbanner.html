@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV-sphere demo</title>
+<style>
+.sdftextbannercanvas {
+    width: 512px;
+    height: 250px;
+}
+
+.twocanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 512px;
+}
+
+.slidercontainer {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+}
+
+#sdftextbannerlabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.sphereslider {
+  opacity: 0.2;
+}
+</style>
+  </head>
+  <body>
+  <main>
+    <div class="twocanvas" width="512">
+      <canvas id="sdftextbannercanvas" class="sdftextbannercanvas" width="512" height="250"></canvas>
+    </div>
+    <label id="sdftextbannerlabel" for="sdftextbannercanvas">
+    </label>
+    <script src="/gl-matrix/gl-matrix-min.js"></script>
+    <script src="./sdftextbanner.js"></script>
+  </main>
+  </body>
+</html>
