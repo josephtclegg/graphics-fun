@@ -276,14 +276,10 @@
             const iframe = entry.target;
             if (entry.isIntersecting) {
               if (iframe.src != iframe.dataset.src) {
-                console.log("loading");
-                console.log(iframe.dataset.src);
                 iframe.src = iframe.dataset.src;
               }
             } else {
               if (iframe.src) {
-                console.log("unloading");
-                console.log(iframe.src);
                 iframe.src = "about:blank";
               }
             }
