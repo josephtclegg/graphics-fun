@@ -257,7 +257,57 @@
               </div>
             </div>
           </div>
-          <iframe id="sdftextbanneriframe" data-src="sdftextbanner.html" title="Text Rendering With SDF's" width="512" height="256" frameBorder="0"></iframe>
+        </div>
+        <div class="pagecontainer">
+          <div id="page5" class="page" width="512">
+            <div class="center-column" width="256">
+              <iframe id="sdftextbanneriframe" data-src="sdftextbanner.html" title="Text Rendering With SDF's" width="512" height="256" frameBorder="0"></iframe>
+            </div>
+            <div class="leftright-columns" width="512">
+              <div class="left-column" width="256">
+                <p>
+                  I've wanted to experiment with text in WebGL for a while.  Something about a bunch of glyphs
+                  sitting on a webpage is just begging for some neat rendering effects.  This trip to the
+                  Letterform Archive in San Francisco I took recently gave me a lot of ideas; namely there
+                  was this like Japanese country fair guide/brochure which struck me, they played with the aspect
+                  ratio and spacing of some of the glyphs to I suppose fit more information onto one big page?
+                  All the different glyphs, and their relative distortion to one another, reminded me of little
+                  spirits.  Some cultures' foklore is full of spirits hanging around everywhere, even for 
+                  mundane things.  Finland's is one of them.  They looked like the sort of mundane kind of
+                  spirits you might have wafting around the house, the forest, by the river: eery, playful,
+                  unremarkable.  free goats.
+                </p>
+              </div>
+              <div class="right-column" width="256">
+                <p>
+                  There's many different approaches to rendering text in an OpenGL context.  The technique I
+                  used here is essentially to render the text to a texture which is passed into WebGL.
+                  Getting a text texture is pretty easy in javascript, we can fill an HTML canvas with text,
+                  using the '2d' canvas context, and then pass that canvas' pixel values as a texture to a
+                  WebGL shader running on a separte canvas.  The trick is to make that first '2d' canvas
+                  invisible, or better yet not even in the DOM.  The problem is that the texture you get is
+                  not very good, especially when you start scaling/distorting it; it just lacks fidelity, and
+                  you can try upscaling the invisible canvas but that comes with the cost of having a bigger
+                  and bigger texture, which hogs resources.  Another approach is to generate a special kind of
+                  texture from the text texture, called a "signed distance field" (SDF).  SDF's have some
+                  interesting properties, namely we can generate an SDF much smaller than the input texture
+                  and sample it in our WebGL shader to whatever size we want, with limited rendering artefacts.
+                  There's a really good paper by Valve on the topic.  We can also use the SDF to implement
+                  cool effects like shadows and glows and stuff around the text.  It's not limited to just
+                  text either, though I think it's particularly suited to this application for its great ability
+                  to preserve thin and thick parts of the underlying image.
+                </p>
+                <p>
+                  SDF generation is well-suited to
+                  parallelization, so it begets us to introduce a third canvas into our mix, an intermediate
+                  layer between the invisible '2d' canvas and the visible WebGL canvas, another invisible canvas
+                  that also has a WebGL context.  We can then write a WebGL shader to generate the SDF, and
+                  store it in a framebuffer, which we can finally pass as a texture to the visible WebGL
+                  canvas, and do whatever rendering effects we want there.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="sidebar">
@@ -265,6 +315,7 @@
         <a class="pagelink" href="#page2">page 2: Quadsphere - 03/25/2025</a>
         <a class="pagelink" href="#page3">page 3: Icosphere - 03/25/2025</a>
         <a class="pagelink" href="#page4">page 4: Phong vs Flat Gummybear - 04/09/2025</a>
+        <a class="pagelink" href="#page5">page 5: Rendering Text with SDF's - 06/08/2025</a>
       </div>
     </main>
     <script>

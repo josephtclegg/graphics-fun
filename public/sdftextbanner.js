@@ -7,9 +7,6 @@ function sdfTextBannerCanvas() {
   const PI = 3.141592653589792;
   const UP_vec3 = vec3.fromValues(0.0, 2.0*Z, 2.0*X);
   const UP = {x: 0.0, y: 2.0*Z/vec3.length(UP_vec3), z: 2.0*X/vec3.length(UP_vec3)};
-  //const CAMERA_POS = [1.5*UP.x, 1.5*UP.y, (1.5*UP.z)-1.6];
-  //const UP_vec3 = vec3.fromValues(0.0, Math.sqrt(0.5), Math.sqrt(0.5));
-  //const UP = {x: 0.0, y: Math.sqrt(0.5), z: Math.sqrt(0.5)};
   const CAMERA_POS = [0.0, 0.0, -1.0*Math.sqrt(200.0)];
 
   const isPowerOf2 = function(n) {
@@ -311,7 +308,7 @@ function sdfTextBannerCanvas() {
   sdfgl.framebufferTexture2D(sdfgl.FRAMEBUFFER, sdfgl.COLOR_ATTACHMENT0, sdfgl.TEXTURE_2D, sdfTexture2, 0);
 
   //let jump = Math.max(sdfCanvas.width, sdfCanvas.height)/2;
-  let jump = 64;
+  let jump = 256;
   let first_jfa = true;
   let sdfReadTexture = sdfTextTexture;
   let sdfWriteBuffer = sdfFramebuffer1;
@@ -328,6 +325,12 @@ function sdfTextBannerCanvas() {
   sdfgl.vertexAttribPointer(sdfTexcoordAttribLocation, 2, sdfgl.FLOAT, false, 0, 0);
   sdfgl.bufferData(sdfgl.ARRAY_BUFFER, new Float32Array(banner.getUvData()), sdfgl.STATIC_DRAW);
   sdfgl.viewport(0, 0, sdfCanvas.width, sdfCanvas.height);
+  //So we're using the jump flooding algorithm (JFA) to generate the SDF.  The shader above does
+  //one iteration of the algorithm, and the way JFA works we have to do subsequent iterations
+  //using the output of the previous one as the input to the current one, which we use these
+  //framebuffers for.  So we swap the buffers, run JFA (drawArrays executes the draw call which
+  //produces the next iteration), and so on until we divide our jump value down to 0, then we
+  //stop.
   while (jump >= 1) {
     sdfgl.bindFramebuffer(sdfgl.FRAMEBUFFER, sdfWriteBuffer);
     sdfgl.activeTexture(sdfgl.TEXTURE0);
@@ -416,15 +419,15 @@ function sdfTextBannerCanvas() {
       vec2 text_uv = vec2(st.x, st.y+sin(16.*st.x+time)/8.*st.x);
       vec4 texcolor = texture2D(texture1,  text_uv);
       float sdf = texcolor.a;
-      //if (sdf < 0.8) {
-      //  sdf = 0.0;
-      //} else {
-      //  sdf = 1.0;
-      //}
-      //float alpha = smoothstep(0.0, 1.0, sdf);
-      float alpha = sdf;
-      alpha *= smoothstep(0.3, 0.7, alpha);
-      vec4 shadowColor = texture2D(texture1,  text_uv+0.005);
+      if (sdf < 0.9) {
+        sdf = 0.0;
+      } else {
+        sdf = 1.0;
+      }
+      float alpha = smoothstep(0.0, 0.1, sdf);
+      //float alpha = sdf;
+      //alpha *= smoothstep(0.0, 0.3, alpha);
+      vec4 shadowColor = texture2D(texture1,  text_uv+0.03);
       shadowColor.a = clamp(0.2, 0.5, shadowColor.a);
       bgcolor = shadowColor;
       vec4 finalcolor = vec4(
