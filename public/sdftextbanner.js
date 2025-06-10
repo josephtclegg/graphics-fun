@@ -220,7 +220,6 @@ function sdfTextBannerCanvas() {
                 encode.a = 1.0 - tex_dist*3.0;
             }
         }
-        encode.rgb = vec3(0.0); //make it grayscale
         return encode;
     }
 
@@ -419,17 +418,19 @@ function sdfTextBannerCanvas() {
       vec2 text_uv = vec2(st.x, st.y+sin(16.*st.x+time)/8.*st.x);
       vec4 texcolor = texture2D(texture1,  text_uv);
       float sdf = texcolor.a;
-      if (sdf < 0.9) {
-        sdf = 0.0;
+      if (sdf > 0.98) {
+        texcolor.rgb = vec3(0.0);
+        texcolor.a = 1.0;
       } else {
-        sdf = 1.0;
+        texcolor.a = 0.0;
       }
-      float alpha = smoothstep(0.0, 0.1, sdf);
-      //float alpha = sdf;
+      //float alpha = smoothstep(0.0, 0.1, sdf);
+      float alpha = texcolor.a;
       //alpha *= smoothstep(0.0, 0.3, alpha);
       vec4 shadowColor = texture2D(texture1,  text_uv+0.03);
       shadowColor.a = clamp(0.2, 0.5, shadowColor.a);
-      bgcolor = shadowColor;
+      //bgcolor = shadowColor;
+      bgcolor = vec4(0.0);
       vec4 finalcolor = vec4(
         texcolor.rgb * alpha + bgcolor.rgb * (1.0 - alpha),
         alpha + bgcolor.a * (1.0 - alpha)
