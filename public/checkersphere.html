@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" style="text-align:left;">
+  <head>
+    <meta charset="UTF-8">
+    <title>UV-sphere demo</title>
+<style>
+.spherecanvas {
+    width: 512px;
+    height: 512px;
+}
+
+.twocanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 512px;
+}
+
+.slidercontainer {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: start;
+  align-items: start;
+}
+
+#checkerspherelabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.sphereslider {
+  opacity: 0.2;
+}
+</style>
+  </head>
+  <body>
+  <main>
+    <div class="twocanvas" width="512">
+      <canvas id="checkerspherecanvas" class="spherecanvas" width="512" height="512"></canvas>
+    </div>
+    <label id="checkerspherelabel" for="checkerspherecanvas">
+    </label>
+    <script src="/gl-matrix/gl-matrix-min.js"></script>
+    <script>
+      function checkerSphereCanvas() {
+        const mat4 = glMatrix.mat4;
+        const vec3 = glMatrix.vec3;
+
+        const X = 0.525731112119133606;
+        const Z = 0.850650808352039932;
+        const PI = 3.141592653589792;
+        const UP_vec3 = vec3.fromValues(0.0, 2.0*Z, 2.0*X);
+        const UP = {x: 0.0, y: 2.0*Z/vec3.length(UP_vec3), z: 2.0*X/vec3.length(UP_vec3)};
+        //const CAMERA_POS = [1.5*UP.x, 1.5*UP.y, (1.5*UP.z)-1.6];
+        //const UP_vec3 = vec3.fromValues(0.0, Math.sqrt(0.5), Math.sqrt(0.5));
+        //const UP = {x: 0.0, y: Math.sqrt(0.5), z: Math.sqrt(0.5)};
+        const CAMERA_POS = [0.0, 0.0, -1.0*Math.sqrt(200.0)];
+
+        const isPowerOf2 = function(n) {
+          return (n > 0 && (n & (n - 1)) === 0);
+        }
+        const createShader = (gl, type, source) => {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            //this is really useful!
+            console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
+          }
+          return shader;
+        };
+
+        const canvas = document.getElementById('checkerspherecanvas');
+        
+        const bannerVertSource = `
+          precision lowp float;
+          attribute vec3 position;
+          void main() {
+            gl_Position = vec4(position, 1.0);
+          }
+        `;
+        const bannerFragSource = `
+          precision highp float;
+          uniform vec2 resolution;
+          uniform float time;
+          float width = 64.;
+
+          float invert(float a) {
+            if (a == 1.0) {
+              return 0.0;
+            }
+            return 1.0;
+          }
+
+          mat2 rotate2d(float angle) {
+            return mat2(cos(angle), -sin(angle),
+                        sin(angle), cos(angle));
+          }
+
+          float dist2d(vec2 p1, vec2 p2) {
+            float x_dist = p1.x - p2.x;
+            float y_dist = p1.y - p2.y;
+            return sqrt(x_dist * x_dist + y_dist * y_dist);
+          }
+
+          mat2 scale2d(float k) {
+            return mat2(k,0,
+                        0,k);
+          }
+
+          void main() {
+            vec2 st = gl_FragCoord.xy;
+            vec2 center = resolution.xy/2.;
+            float radius = dist2d(vec2(0.0, 0.0), center);
+            float dist = dist2d(gl_FragCoord.xy, center);
+            if (dist < radius) {
+              st = st - center;
+              //st = scale2d((smoothstep(0.0, radius, dist)/2.)+0.5)*st;
+              st = scale2d(smoothstep(0.0, radius, dist))*st;
+              st = st + center;
+              st -= vec2(time/128.);
+            }
+            float vertical = step(mod(st.x, width), width/2.);
+            float horizontal = step(mod(st.y, width), width/2.);
+            float checkers = vertical;
+            if (horizontal == 1.0) {
+              checkers = invert(checkers);
+            }
+            gl_FragColor = vec4(checkers, 0.0, 0.0, 1.0);
+          }
+        `;
+        //WebGL initialization stuff
+        const bannergl = canvas.getContext('webgl', {alpha: true});
+        if (!bannergl) {
+          console.error('WebGL not supported');
+          return;
+        }
+        bannergl.enable(bannergl.BLEND);
+        bannergl.blendFunc(bannergl.SRC_ALPHA, bannergl.ONE_MINUS_SRC_ALPHA);
+        bannergl.viewport(0, 0, canvas.width, canvas.height);
+        bannergl.pixelStorei(bannergl.UNPACK_FLIP_Y_WEBGL, true);
+        const bannerVert = createShader(bannergl, bannergl.VERTEX_SHADER, bannerVertSource);
+        const bannerFrag = createShader(bannergl, bannergl.FRAGMENT_SHADER, bannerFragSource);
+        const shaderProgram = bannergl.createProgram();
+        const positionBuffer = bannergl.createBuffer();
+        bannergl.attachShader(shaderProgram, bannerVert);
+        bannergl.attachShader(shaderProgram, bannerFrag);
+        bannergl.linkProgram(shaderProgram);
+        if (!bannergl.getProgramParameter(shaderProgram, bannergl.LINK_STATUS)) {
+          console.error('Failed to link shader program: ', bannergl.getProgramInfoLog(shaderProgram));
+          return;
+        }
+
+        function createBanner() {
+          const positions = [-1.0, 1.0, 0.0,  //top left
+                             -1.0,-1.0, 0.0,  //bot left
+                              1.0,-1.0, 0.0,  //bot right
+                              1.0, 1.0, 0.0]  //top right
+          const texcoords = [ 0.0,  1.0,  //top left
+                              0.0,  0.0,  //bot left
+                              1.0,  0.0,  //bot right
+                              1.0,  1.0]; //top right
+          const position_indices = [0, 1, 2,
+                                    2, 3, 0];
+          const uv_indices = position_indices;
+          const position_data = position_indices.flatMap((n) => [positions[3*n], positions[3*n+1], positions[3*n+2]]);
+          const uv_data = uv_indices.flatMap((n) => [texcoords[2*n], texcoords[2*n+1]]);
+          const banner = {
+            getPositionData() {
+                return position_data;
+            },
+            getUvData() {
+                return uv_data;
+            },
+            numVertices() {
+              return position_data.length/3;
+            }
+          };
+
+          return banner;
+        };
+        const banner = createBanner();
+        const positionAttribLocation = bannergl.getAttribLocation(shaderProgram, 'position');
+        const resolutionUniformLocation = bannergl.getUniformLocation(shaderProgram, 'resolution');
+        const timeUniformLocation = bannergl.getUniformLocation(shaderProgram, 'time');
+
+        const render = () => {
+          bannergl.viewport(0, 0, canvas.width, canvas.height);
+          bannergl.clearColor(0, 0, 0, 0);
+          bannergl.clear(bannergl.COLOR_BUFFER_BIT);
+          //Bind banner shader program
+          bannergl.useProgram(shaderProgram);
+          //Set banner positions
+          bannergl.bindBuffer(bannergl.ARRAY_BUFFER, positionBuffer);
+          bannergl.enableVertexAttribArray(positionAttribLocation);
+          bannergl.vertexAttribPointer(positionAttribLocation, 3, bannergl.FLOAT, false, 0, 0);
+          bannergl.bufferData(bannergl.ARRAY_BUFFER, new Float32Array(banner.getPositionData()), bannergl.STATIC_DRAW);
+          //Set uniforms
+          bannergl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+          bannergl.uniform1f(timeUniformLocation, performance.now());
+          //Draw banner
+          bannergl.drawArrays(bannergl.TRIANGLE_STRIP, 0, banner.numVertices());
+          requestAnimationFrame(render);
+        };
+        const animationId = requestAnimationFrame(render);
+      }
+      checkerSphereCanvas();
+    </script>
+  </main>
+  </body>
+</html>

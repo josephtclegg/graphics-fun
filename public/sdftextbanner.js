@@ -417,20 +417,22 @@ function sdfTextBannerCanvas() {
       //make wavy effect on text
       vec2 text_uv = vec2(st.x, st.y+sin(16.*st.x+time)/8.*st.x);
       vec4 texcolor = texture2D(texture1,  text_uv);
-      float sdf = texcolor.a;
-      if (sdf > 0.98) {
+      vec4 shadowcolor = texture2D(texture1,  text_uv+0.02);
+      if (texcolor.a > 0.98) {
         texcolor.rgb = vec3(0.0);
         texcolor.a = 1.0;
       } else {
         texcolor.a = 0.0;
       }
-      //float alpha = smoothstep(0.0, 0.1, sdf);
+      if (shadowcolor.a > 0.97) {
+        shadowcolor.rgb = vec3(0.0);
+        //shadowcolor.a = 0.6;
+        shadowcolor.a = clamp(0.2, 0.5, shadowcolor.a);
+      } else {
+        shadowcolor.a = 0.0;
+      }
       float alpha = texcolor.a;
-      //alpha *= smoothstep(0.0, 0.3, alpha);
-      vec4 shadowColor = texture2D(texture1,  text_uv+0.03);
-      shadowColor.a = clamp(0.2, 0.5, shadowColor.a);
-      //bgcolor = shadowColor;
-      bgcolor = vec4(0.0);
+      bgcolor = shadowcolor;
       vec4 finalcolor = vec4(
         texcolor.rgb * alpha + bgcolor.rgb * (1.0 - alpha),
         alpha + bgcolor.a * (1.0 - alpha)
